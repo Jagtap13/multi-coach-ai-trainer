@@ -11,6 +11,10 @@ def generate_response(prompt, model=MODEL_NAME):
     }
 
     response = requests.post(OLLAMA_URL, json=payload)
+
+    if response.status_code != 200:
+        print("Ollama error response:", response.text)
+
     response.raise_for_status()
 
     data = response.json()
