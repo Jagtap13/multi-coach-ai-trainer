@@ -1,0 +1,16 @@
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment secrets
+.env
+
+# Vector store (regenerable via ingest.py, and can be large)
+app/rag/vector_store/
+
+# OS files
+.DS_Store
+Thumbs.db
