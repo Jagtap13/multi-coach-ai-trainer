@@ -34,7 +34,7 @@ def get_rag_response(user_question, coach_type="bodybuilding", k=3):
 if __name__ == "__main__":
     question = "What rep range should I use to build muscle?"
 
-    for coach in ["bodybuilding", "powerlifting"]:
+    for coach in ["bodybuilding", "powerlifting", "nutrition", "fatloss"]:
         print(f"\n{'='*50}")
         print(f"Coach: {coach.upper()}")
         print(f"Question: {question}\n")
@@ -43,3 +43,9 @@ if __name__ == "__main__":
 
         print("--- Answer ---")
         print(answer)
+
+        print("\n--- Sources used ---")
+        for chunk in sources:
+            import os
+            source = os.path.basename(chunk.metadata.get("source", "unknown"))
+            print(f"- {source}")
