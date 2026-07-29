@@ -1,0 +1,23 @@
+@import "tailwindcss";
+/* @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap'); */
+
+:root {
+  --color-bg: #1C1D1F;
+  --color-bg-elevated: #26282B;
+  --color-chalk: #F2EFE9;
+  --color-chalk-dim: #A8A6A0;
+
+  --accent-bodybuilding: #C0503D;
+  --accent-powerlifting: #3D6B8C;
+  --accent-nutrition: #5C7A4A;
+  --accent-fatloss: #C98A2E;
+
+  --font-display: 'Oswald', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-chalk);
+  font-family: var(--font-body);
+}
