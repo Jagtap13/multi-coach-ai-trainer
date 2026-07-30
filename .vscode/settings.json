@@ -1,0 +1,9 @@
+{
+  "python.analysis.extraPaths": [
+    "./backend/app/rag",
+    "./backend/app/llm",
+    "./backend/app/coaches",
+    "./backend/app/services"
+  ],
+  "python.defaultInterpreterPath": "./backend/venv/Scripts/python.exe"
+}

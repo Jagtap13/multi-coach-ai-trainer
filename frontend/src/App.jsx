@@ -20,7 +20,7 @@ function App() {
         <h1 className="font-[Oswald] uppercase tracking-wide text-3xl font-semibold">
           AI Personal Trainer <span style={{ color: activeCoach.accent }}>Simulator</span>
         </h1>
-        <p className="text-[var(--color-chalk-dim)] text-sm mt-1">
+        <p className="text-(--color-chalk-dim) text-sm mt-1">
           Pick your coach, ask your question.
         </p>
       </header>
@@ -28,7 +28,7 @@ function App() {
       <div className="flex flex-1 max-w-5xl mx-auto w-full px-8 py-8 gap-8">
         {/* Coach selector */}
         <aside className="w-64 shrink-0">
-          <h2 className="text-xs uppercase tracking-widest text-[var(--color-chalk-dim)] mb-3">
+          <h2 className="text-xs uppercase tracking-widest text-(--color-chalk-dim) mb-3">
             Select Coach
           </h2>
           <div className="flex flex-col gap-2">
@@ -49,7 +49,7 @@ function App() {
                 <div className="font-[Oswald] uppercase text-sm tracking-wide">
                   {coach.label}
                 </div>
-                <div className="text-xs text-[var(--color-chalk-dim)] mt-0.5">
+                <div className="text-xs text-(--color-chalk-dim) mt-0.5">
                   {coach.tagline}
                 </div>
               </button>
