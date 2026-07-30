@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import ChatWindow from './ChatWindow'
+import ProfileForm from './ProfileForm'
 
 const COACHES = [
   { id: 'bodybuilding', label: 'Bodybuilding', accent: 'var(--accent-bodybuilding)', tagline: 'Muscle & mass' },
@@ -10,12 +11,17 @@ const COACHES = [
 
 function App() {
   const [selectedCoach, setSelectedCoach] = useState('bodybuilding')
+  const [profile, setProfile] = useState({
+    age: '',
+    weight_kg: '',
+    experience_level: '',
+    goal: '',
+  })
 
   const activeCoach = COACHES.find((c) => c.id === selectedCoach)
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
       <header className="border-b border-white/10 px-8 py-6">
         <h1 className="font-[Oswald] uppercase tracking-wide text-3xl font-semibold">
           AI Personal Trainer <span style={{ color: activeCoach.accent }}>Simulator</span>
@@ -26,7 +32,6 @@ function App() {
       </header>
 
       <div className="flex flex-1 max-w-5xl mx-auto w-full px-8 py-8 gap-8">
-        {/* Coach selector */}
         <aside className="w-64 shrink-0">
           <h2 className="text-xs uppercase tracking-widest text-(--color-chalk-dim) mb-3">
             Select Coach
@@ -55,11 +60,12 @@ function App() {
               </button>
             ))}
           </div>
+
+          <ProfileForm profile={profile} setProfile={setProfile} />
         </aside>
 
-        {/* Chat area */}
         <main className="flex-1 border border-white/10 rounded-md overflow-hidden">
-          <ChatWindow coach={activeCoach} />
+          <ChatWindow coach={activeCoach} profile={profile} />
         </main>
       </div>
     </div>
