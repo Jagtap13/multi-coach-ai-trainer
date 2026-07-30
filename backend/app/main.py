@@ -24,9 +24,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class UserProfile(BaseModel):
+    age: int | None = None
+    weight_kg: float | None = None
+    experience_level: str | None = None  # beginner, intermediate, advanced
+    goal: str | None = None
+
 class ChatRequest(BaseModel):
     question: str
     coach_type: str = "bodybuilding"
+    profile: UserProfile | None = None
 
 class ChatResponse(BaseModel):
     answer: str
@@ -50,7 +57,11 @@ def chat(request: ChatRequest):
         )
 
     try:
-        answer, chunks = get_rag_response(request.question, coach_type=request.coach_type)
+        answer, chunks = get_rag_response(
+            request.question,
+              coach_type=request.coach_type,
+              profile=request.profile.model_dump() if request.profile else None
+              )
         sources = list(set(os.path.basename(c.metadata.get("source", "unknown")) for c in chunks))
 
         return ChatResponse(
