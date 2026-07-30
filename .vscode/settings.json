@@ -3,7 +3,10 @@
     "./backend/app/rag",
     "./backend/app/llm",
     "./backend/app/coaches",
-    "./backend/app/services"
+    "./backend/app/services",
+    "./backend/app/core",
+    "./backend/app/models",
+    "./backend/app/api",
   ],
   "python.defaultInterpreterPath": "./backend/venv/Scripts/python.exe"
 }

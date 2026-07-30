@@ -5,15 +5,17 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "rag"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "llm"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "coaches"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "services"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "api"))
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-
+from auth_routes import router as auth_router
 from rag_pipeline import get_rag_response
 from coach_prompts import COACH_PROMPTS
 
 app = FastAPI(title="AI Personal Trainer Simulator API")
+app.include_router(auth_router)
 
 # Allow the React frontend (running on a different port) to call this API
 app.add_middleware(
