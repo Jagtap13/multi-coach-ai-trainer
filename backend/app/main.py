@@ -6,13 +6,15 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "llm"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "coaches"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "services"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "api"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "core"))
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends 
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from auth_routes import router as auth_router
 from rag_pipeline import get_rag_response
 from coach_prompts import COACH_PROMPTS
+from auth_dependency import get_current_user
 
 app = FastAPI(title="AI Personal Trainer Simulator API")
 app.include_router(auth_router)
@@ -51,7 +53,7 @@ def list_coaches():
     return {"available_coaches": list(COACH_PROMPTS.keys())}
 
 @app.post("/chat", response_model=ChatResponse)
-def chat(request: ChatRequest):
+def chat(request: ChatRequest, current_user=Depends(get_current_user)):
     if request.coach_type.lower() not in COACH_PROMPTS:
         raise HTTPException(
             status_code=400,

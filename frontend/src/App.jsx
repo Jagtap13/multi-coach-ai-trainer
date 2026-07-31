@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import ChatWindow from './ChatWindow'
 import ProfileForm from './ProfileForm'
+import AuthForm from './AuthForm'
 
 const COACHES = [
   { id: 'bodybuilding', label: 'Bodybuilding', accent: 'var(--accent-bodybuilding)', tagline: 'Muscle & mass' },
@@ -10,6 +11,7 @@ const COACHES = [
 ]
 
 function App() {
+  const [token , setToken] = useState(() => localStorage.getItem('token')) 
   const [selectedCoach, setSelectedCoach] = useState('bodybuilding')
   const [profile, setProfile] = useState({
     age: '',
@@ -20,15 +22,36 @@ function App() {
 
   const activeCoach = COACHES.find((c) => c.id === selectedCoach)
 
+  const handleAuthSuccess = (newToken) => {
+    localStorage.setItem('token',newToken)
+    setToken(newToken)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    setToken(null)
+  }
+
+  if(!token){
+    return <AuthForm onAuthSuccess={handleAuthSuccess} />
+  }  
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b border-white/10 px-8 py-6">
-        <h1 className="font-[Oswald] uppercase tracking-wide text-3xl font-semibold">
-          AI Personal Trainer <span style={{ color: activeCoach.accent }}>Simulator</span>
-        </h1>
-        <p className="text-(--color-chalk-dim) text-sm mt-1">
-          Pick your coach, ask your question.
-        </p>
+      <header className="border-b border-white/10 px-8 py-6 flex items-center justify-between">
+        <div>
+          <h1 className="font-[Oswald] uppercase tracking-wide text-3xl font-semibold">
+            AI Personal Trainer <span style={{ color: activeCoach.accent }}>Simulator</span>
+          </h1>
+          <p className="text-(--color-chalk-dim) text-sm mt-1">
+            Pick your coach, ask your question.
+          </p>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="text-xs uppercase tracking-wide px-4 py-2 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all shrink-0"
+        >
+          Log out
+        </button>
       </header>
 
       <div className="flex flex-1 max-w-5xl mx-auto w-full px-8 py-8 gap-8">
@@ -65,7 +88,7 @@ function App() {
         </aside>
 
         <main className="flex-1 border border-white/10 rounded-md overflow-hidden">
-          <ChatWindow coach={activeCoach} profile={profile} />
+          <ChatWindow coach={activeCoach} profile={profile} token={token} />
         </main>
       </div>
     </div>

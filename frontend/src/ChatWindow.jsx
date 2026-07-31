@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 const API_URL = 'http://127.0.0.1:8000'
 
-function ChatWindow({ coach, profile }) {
+function ChatWindow({ coach, profile, token }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -18,7 +18,10 @@ function ChatWindow({ coach, profile }) {
     try {
       const response = await fetch(`${API_URL}/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}`, 
+        },
         body: JSON.stringify({
           question: userMessage.content,
           coach_type: coach.id,
