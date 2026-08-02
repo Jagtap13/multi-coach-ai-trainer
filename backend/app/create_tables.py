@@ -6,6 +6,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "models"))
 
 from database import Base, engine
 from user import User
+from chat_history import ChatHistory
 
 print("Creating tables...")
 Base.metadata.create_all(bind=engine)
