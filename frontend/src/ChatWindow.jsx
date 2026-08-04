@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const API_URL = 'http://127.0.0.1:8000'
 
@@ -6,6 +6,37 @@ function ChatWindow({ coach, profile, token }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [loadingHistory, setLoadingHistory] = useState(true)
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      setLoadingHistory(true)
+      try {
+        const response = await fetch(`${API_URL}/chat/history`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (response.ok) {
+          const data = await response.json()
+          const coachHistory = data
+            .filter((entry) => entry.coach_type === coach.id)
+            .reverse()
+
+          const historyMessages = coachHistory.flatMap((entry) => [
+            { role: 'user', content: entry.question },
+            { role: 'assistant', content: entry.answer, sources: entry.sources },
+          ])
+
+          setMessages(historyMessages)
+        }
+      } catch (err) {
+        console.error('Failed to load chat history:', err)
+      } finally {
+        setLoadingHistory(false)
+      }
+    }
+
+    if (token) loadHistory()
+  }, [coach.id, token])
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return
@@ -19,8 +50,8 @@ function ChatWindow({ coach, profile, token }) {
       const response = await fetch(`${API_URL}/chat`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json', 
-          'Authorization': `Bearer ${token}`, 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           question: userMessage.content,
@@ -62,9 +93,20 @@ function ChatWindow({ coach, profile, token }) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-4">
-        {messages.length === 0 && (
+        <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-4">
+        {messages.length > 0 && (
+          <button
+            onClick={() => setMessages([])}
+            className="self-end text-xs uppercase tracking-wide px-3 py-1.5 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
+          >
+            Clear view
+          </button>
+        )}
+        {loadingHistory && (
+          <p className="text-(--color-chalk-dim) text-sm m-auto">Loading conversation...</p>
+        )}
+
+        {!loadingHistory && messages.length === 0 && (
           <p className="text-(--color-chalk-dim) text-sm m-auto">
             Ask your {coach.label} Coach a question to get started.
           </p>
@@ -97,7 +139,6 @@ function ChatWindow({ coach, profile, token }) {
         )}
       </div>
 
-      {/* Input */}
       <div className="border-t border-white/10 p-4 flex gap-3">
         <textarea
           value={input}

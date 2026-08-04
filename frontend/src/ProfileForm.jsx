@@ -1,6 +1,67 @@
-function ProfileForm({ profile, setProfile }) {
+import { useState, useEffect } from 'react'
+
+const API_URL = 'http://127.0.0.1:8000'
+
+function ProfileForm({ profile, setProfile, token }) {
+  const [saving, setSaving] = useState(false)
+  const [saveStatus, setSaveStatus] = useState('')
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const response = await fetch(`${API_URL}/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setProfile({
+            age: data.age ?? '',
+            weight_kg: data.weight_kg ?? '',
+            experience_level: data.experience_level ?? '',
+            goal: data.goal ?? '',
+          })
+        }
+      } catch (err) {
+        console.error('Failed to load profile:', err)
+      }
+    }
+
+    if (token) loadProfile()
+  }, [token])
+
   const handleChange = (field, value) => {
     setProfile((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    setSaveStatus('')
+    try {
+      const response = await fetch(`${API_URL}/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          age: profile.age ? parseInt(profile.age) : null,
+          weight_kg: profile.weight_kg ? parseFloat(profile.weight_kg) : null,
+          experience_level: profile.experience_level || null,
+          goal: profile.goal || null,
+        }),
+      })
+
+      if (response.ok) {
+        setSaveStatus('Saved!')
+        setTimeout(() => setSaveStatus(''), 2000)
+      } else {
+        setSaveStatus('Failed to save')
+      }
+    } catch (err) {
+      setSaveStatus('Failed to save')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -56,6 +117,14 @@ function ProfileForm({ profile, setProfile }) {
             className="w-full bg-(--color-bg-elevated) rounded-md px-3 py-2 text-sm outline-none placeholder:text-(--color-chalk-dim)"
           />
         </div>
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="mt-1 text-xs uppercase tracking-wide px-3 py-2 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all disabled:opacity-50"
+        >
+          {saving ? 'Saving...' : saveStatus || 'Save Profile'}
+        </button>
       </div>
     </div>
   )

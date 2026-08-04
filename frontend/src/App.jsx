@@ -84,7 +84,7 @@ function App() {
             ))}
           </div>
 
-          <ProfileForm profile={profile} setProfile={setProfile} />
+          <ProfileForm profile={profile} setProfile={setProfile} token={token}/>
         </aside>
 
         <main className="flex-1 border border-white/10 rounded-md overflow-hidden">
