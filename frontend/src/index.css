@@ -21,3 +21,26 @@ body {
   color: var(--color-chalk);
   font-family: var(--font-body);
 }
+/* Custom scrollbar - Webkit browsers (Chrome, Edge, Brave) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-border, #3A3C3F);
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-chalk-dim);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border, #3A3C3F) transparent;
+}

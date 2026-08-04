@@ -1,12 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import HistoryPanel from './HistoryPanel'
 
 const API_URL = 'http://127.0.0.1:8000'
 
 function ChatWindow({ coach, profile, token }) {
   const [messages, setMessages] = useState([])
+  const [historyEntries, setHistoryEntries] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [loadingHistory, setLoadingHistory] = useState(true)
+  const [panelOpen, setPanelOpen] = useState(false)
+  const [highlightedId, setHighlightedId] = useState(null)
+
+  const messageRefs = useRef({})
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -21,9 +27,11 @@ function ChatWindow({ coach, profile, token }) {
             .filter((entry) => entry.coach_type === coach.id)
             .reverse()
 
+          setHistoryEntries(coachHistory)
+
           const historyMessages = coachHistory.flatMap((entry) => [
-            { role: 'user', content: entry.question },
-            { role: 'assistant', content: entry.answer, sources: entry.sources },
+            { role: 'user', content: entry.question, historyId: entry.id },
+            { role: 'assistant', content: entry.answer, sources: entry.sources, historyId: entry.id },
           ])
 
           setMessages(historyMessages)
@@ -91,17 +99,38 @@ function ChatWindow({ coach, profile, token }) {
     }
   }
 
+  const handleSelectHistory = (historyId) => {
+    setPanelOpen(false)
+    const node = messageRefs.current[historyId]
+    if (node) {
+      node.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setHighlightedId(historyId)
+      setTimeout(() => setHighlightedId(null), 1500)
+    }
+  }
+
   return (
-    <div className="flex flex-col h-full">
-        <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-4">
-        {messages.length > 0 && (
-          <button
-            onClick={() => setMessages([])}
-            className="self-end text-xs uppercase tracking-wide px-3 py-1.5 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
-          >
-            Clear view
-          </button>
-        )}
+    <div className="relative flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-4">
+        <div className="flex justify-end gap-2">
+          {historyEntries.length > 0 && (
+            <button
+              onClick={() => setPanelOpen(true)}
+              className="text-xs uppercase tracking-wide px-3 py-1.5 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
+            >
+              History
+            </button>
+          )}
+          {messages.length > 0 && !loadingHistory && (
+            <button
+              onClick={() => setMessages([])}
+              className="text-xs uppercase tracking-wide px-3 py-1.5 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
+            >
+              Clear View
+            </button>
+          )}
+        </div>
+
         {loadingHistory && (
           <p className="text-(--color-chalk-dim) text-sm m-auto">Loading conversation...</p>
         )}
@@ -115,13 +144,17 @@ function ChatWindow({ coach, profile, token }) {
         {messages.map((msg, i) => (
           <div
             key={i}
-            className={`max-w-[80%] px-4 py-3 rounded-md text-sm ${
+            ref={(el) => {
+              if (msg.historyId && msg.role === 'user') messageRefs.current[msg.historyId] = el
+            }}
+            className={`max-w-[80%] px-4 py-3 rounded-md text-sm transition-all ${
               msg.role === 'user'
                 ? 'self-end bg-white/10'
                 : msg.role === 'error'
                 ? 'self-start bg-red-900/30 text-red-300'
                 : 'self-start bg-(--color-bg-elevated)'
-            }`}
+            } ${highlightedId === msg.historyId ? 'ring-2' : ''}`}
+            style={highlightedId === msg.historyId ? { ringColor: coach.accent } : {}}
           >
             <p className="whitespace-pre-wrap">{msg.content}</p>
             {msg.sources && msg.sources.length > 0 && (
@@ -157,6 +190,14 @@ function ChatWindow({ coach, profile, token }) {
           Send
         </button>
       </div>
+
+      <HistoryPanel
+        isOpen={panelOpen}
+        onClose={() => setPanelOpen(false)}
+        entries={historyEntries}
+        onSelect={handleSelectHistory}
+        coachLabel={coach.label}
+      />
     </div>
   )
 }

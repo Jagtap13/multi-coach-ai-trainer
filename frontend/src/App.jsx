@@ -36,7 +36,7 @@ function App() {
     return <AuthForm onAuthSuccess={handleAuthSuccess} />
   }  
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       <header className="border-b border-white/10 px-8 py-6 flex items-center justify-between">
         <div>
           <h1 className="font-[Oswald] uppercase tracking-wide text-3xl font-semibold">
@@ -54,7 +54,7 @@ function App() {
         </button>
       </header>
 
-      <div className="flex flex-1 max-w-5xl mx-auto w-full px-8 py-8 gap-8">
+      <div className="flex flex-1 max-w-5xl mx-auto w-full px-8 py-8 gap-8 min-h-0">
         <aside className="w-64 shrink-0">
           <h2 className="text-xs uppercase tracking-widest text-(--color-chalk-dim) mb-3">
             Select Coach
