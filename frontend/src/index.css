@@ -21,6 +21,7 @@ body {
   color: var(--color-chalk);
   font-family: var(--font-body);
 }
+
 /* Custom scrollbar - Webkit browsers (Chrome, Edge, Brave) */
 ::-webkit-scrollbar {
   width: 8px;
@@ -43,4 +44,17 @@ body {
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--color-border, #3A3C3F) transparent;
+}
+
+/* Hide number input spinner arrows - Chrome, Edge, Safari */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Hide number input spinner arrows - Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }

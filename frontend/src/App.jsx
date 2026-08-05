@@ -55,7 +55,7 @@ function App() {
       </header>
 
       <div className="flex flex-1 max-w-5xl mx-auto w-full px-8 py-8 gap-8 min-h-0">
-        <aside className="w-64 shrink-0">
+        <aside className="w-64 shrink-0 overflow-y-auto">
           <h2 className="text-xs uppercase tracking-widest text-(--color-chalk-dim) mb-3">
             Select Coach
           </h2>

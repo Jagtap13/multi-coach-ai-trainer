@@ -75,6 +75,7 @@ function ProfileForm({ profile, setProfile, token }) {
           <label className="text-xs text-(--color-chalk-dim) block mb-1">Age</label>
           <input
             type="number"
+            min="0"
             value={profile.age}
             onChange={(e) => handleChange('age', e.target.value)}
             placeholder="e.g. 22"
@@ -86,6 +87,8 @@ function ProfileForm({ profile, setProfile, token }) {
           <label className="text-xs text-(--color-chalk-dim) block mb-1">Weight (kg)</label>
           <input
             type="number"
+            step="any"
+            min="0"
             value={profile.weight_kg}
             onChange={(e) => handleChange('weight_kg', e.target.value)}
             placeholder="e.g. 65"
