@@ -1,4 +1,4 @@
-function HistoryPanel({ isOpen, onClose, entries, onSelect, coachLabel }) {
+function HistoryPanel({ isOpen, onClose, entries, onSelect, onDelete, coachLabel }) {
   if (!isOpen) return null
 
   return (
@@ -17,6 +17,17 @@ function HistoryPanel({ isOpen, onClose, entries, onSelect, coachLabel }) {
             ×
           </button>
         </div>
+
+        {entries.length > 0 && (
+          <div className="px-4 py-3 border-b border-white/10">
+            <button
+              onClick={onDelete}
+              className="text-xs uppercase tracking-wide text-red-400 hover:text-red-300 transition-all"
+            >
+              Delete All History
+            </button>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2">
           {entries.length === 0 && (

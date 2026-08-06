@@ -112,10 +112,19 @@ def get_chat_history(current_user=Depends(get_current_user), db: Session = Depen
     ]
 
 @app.delete("/chat/history")
-def clear_chat_history(coach_type: str | None = None, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+def clear_chat_history(
+    coach_type: str | None = None,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     query = db.query(ChatHistory).filter(ChatHistory.user_id == current_user.id)
+
     if coach_type:
+        if coach_type.lower() not in COACH_PROMPTS:
+            raise HTTPException(status_code=400, detail="Invalid coach_type")
         query = query.filter(ChatHistory.coach_type == coach_type)
+
     deleted_count = query.delete()
     db.commit()
-    return {"deleted": deleted_count} 
+
+    return {"deleted": deleted_count}

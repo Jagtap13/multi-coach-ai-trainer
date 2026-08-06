@@ -109,6 +109,25 @@ function ChatWindow({ coach, profile, token }) {
     }
   }
 
+  const handleDeleteHistory = async () => {
+    const confirmed = window.confirm(`Delete all ${coach.label} conversation history? This cannot be undone.`)
+    if (!confirmed) return
+
+    try {
+      const response = await fetch(`${API_URL}/chat/history?coach_type=${coach.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (response.ok) {
+        setHistoryEntries([])
+        setMessages([])
+        setPanelOpen(false)
+      }
+    } catch (err) {
+      console.error('Failed to delete history:', err)
+    }
+  }
+
   return (
     <div className="relative flex flex-col h-full">
       <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-4">
@@ -196,6 +215,7 @@ function ChatWindow({ coach, profile, token }) {
         onClose={() => setPanelOpen(false)}
         entries={historyEntries}
         onSelect={handleSelectHistory}
+        onDelete={handleDeleteHistory}
         coachLabel={coach.label}
       />
     </div>
