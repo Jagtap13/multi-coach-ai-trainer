@@ -1,5 +1,22 @@
-function HistoryPanel({ isOpen, onClose, entries, onSelect, onDelete, coachLabel }) {
+import { useState } from 'react'
+import ContextMenu from './ContextMenu'
+
+function HistoryPanel({ isOpen, onClose, entries, onSelect, onDelete, onDeleteSingle, coachLabel }) {
+  const [contextMenu, setContextMenu] = useState(null)
+
   if (!isOpen) return null
+
+  const handleRightClick = (e, entryId) => {
+    e.preventDefault()
+    setContextMenu({ x: e.clientX, y: e.clientY, entryId })
+  }
+
+  const handleDeleteSingle = () => {
+    if (contextMenu) {
+      onDeleteSingle(contextMenu.entryId)
+      setContextMenu(null)
+    }
+  }
 
   return (
     <div className="absolute inset-0 z-10 flex justify-end">
@@ -40,6 +57,7 @@ function HistoryPanel({ isOpen, onClose, entries, onSelect, onDelete, coachLabel
             <button
               key={entry.id}
               onClick={() => onSelect(entry.id)}
+              onContextMenu={(e) => handleRightClick(e, entry.id)}
               className="text-left px-3 py-2 rounded-md hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
             >
               <p className="text-xs text-(--color-chalk) line-clamp-2">
@@ -52,6 +70,15 @@ function HistoryPanel({ isOpen, onClose, entries, onSelect, onDelete, coachLabel
           ))}
         </div>
       </div>
+
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onDelete={handleDeleteSingle}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
     </div>
   )
 }

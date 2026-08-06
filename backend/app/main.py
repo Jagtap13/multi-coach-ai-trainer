@@ -128,3 +128,22 @@ def clear_chat_history(
     db.commit()
 
     return {"deleted": deleted_count}
+
+@app.delete("/chat/history/{history_id}")
+def delete_single_history(
+    history_id: int,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    record = db.query(ChatHistory).filter(
+        ChatHistory.id == history_id,
+        ChatHistory.user_id == current_user.id
+    ).first()
+
+    if not record:
+        raise HTTPException(status_code=404, detail="History record not found")
+
+    db.delete(record)
+    db.commit()
+
+    return {"deleted": history_id}

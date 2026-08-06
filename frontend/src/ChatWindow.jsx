@@ -127,6 +127,20 @@ function ChatWindow({ coach, profile, token }) {
       console.error('Failed to delete history:', err)
     }
   }
+  const handleDeleteSingleHistory = async (historyId) => {
+    try {
+      const response = await fetch(`${API_URL}/chat/history/${historyId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (response.ok) {
+        setHistoryEntries((prev) => prev.filter((e) => e.id !== historyId))
+        setMessages((prev) => prev.filter((m) => m.historyId !== historyId))
+      }
+    } catch (err) {
+      console.error('Failed to delete history entry:', err)
+    }
+  }
 
   return (
     <div className="relative flex flex-col h-full">
@@ -216,6 +230,7 @@ function ChatWindow({ coach, profile, token }) {
         entries={historyEntries}
         onSelect={handleSelectHistory}
         onDelete={handleDeleteHistory}
+        onDeleteSingle={handleDeleteSingleHistory}
         coachLabel={coach.label}
       />
     </div>
