@@ -6,9 +6,19 @@ function HistoryPanel({ isOpen, onClose, entries, onSelect, onDelete, onDeleteSi
 
   if (!isOpen) return null
 
+  const openMenuAt = (x, y, entryId) => {
+    setContextMenu({ x, y, entryId })
+  }
+
   const handleRightClick = (e, entryId) => {
     e.preventDefault()
-    setContextMenu({ x: e.clientX, y: e.clientY, entryId })
+    openMenuAt(e.clientX, e.clientY, entryId)
+  }
+
+  const handleDotsClick = (e, entryId) => {
+    e.stopPropagation()
+    const rect = e.currentTarget.getBoundingClientRect()
+    openMenuAt(rect.right - 140, rect.bottom + 4, entryId)
   }
 
   const handleDeleteSingle = () => {
@@ -54,19 +64,31 @@ function HistoryPanel({ isOpen, onClose, entries, onSelect, onDelete, onDeleteSi
           )}
 
           {entries.map((entry) => (
-            <button
+            <div
               key={entry.id}
-              onClick={() => onSelect(entry.id)}
               onContextMenu={(e) => handleRightClick(e, entry.id)}
-              className="text-left px-3 py-2 rounded-md hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
+              className="relative flex items-start gap-1 rounded-md hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
             >
-              <p className="text-xs text-(--color-chalk) line-clamp-2">
-                {entry.question}
-              </p>
-              <p className="text-[10px] text-(--color-chalk-dim) mt-1">
-                {new Date(entry.created_at).toLocaleString()}
-              </p>
-            </button>
+              <button
+                onClick={() => onSelect(entry.id)}
+                className="flex-1 text-left px-3 py-2 min-w-0"
+              >
+                <p className="text-xs text-(--color-chalk) line-clamp-2">
+                  {entry.question}
+                </p>
+                <p className="text-[10px] text-(--color-chalk-dim) mt-1">
+                  {new Date(entry.created_at).toLocaleString()}
+                </p>
+              </button>
+
+              <button
+                onClick={(e) => handleDotsClick(e, entry.id)}
+                className="shrink-0 px-2 py-2 text-(--color-chalk-dim) hover:text-(--color-chalk) text-sm"
+                aria-label="More options"
+              >
+                ⋮
+              </button>
+            </div>
           ))}
         </div>
       </div>

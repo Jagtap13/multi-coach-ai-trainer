@@ -11,6 +11,7 @@ function ChatWindow({ coach, profile, token }) {
   const [loadingHistory, setLoadingHistory] = useState(true)
   const [panelOpen, setPanelOpen] = useState(false)
   const [highlightedId, setHighlightedId] = useState(null)
+  const [pendingScrollId, setPendingScrollId] = useState(null)
 
   const messageRefs = useRef({})
 
@@ -45,6 +46,18 @@ function ChatWindow({ coach, profile, token }) {
 
     if (token) loadHistory()
   }, [coach.id, token])
+
+  useEffect(() => {
+    if (!pendingScrollId) return
+
+    const node = messageRefs.current[pendingScrollId]
+    if (node) {
+      node.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setHighlightedId(pendingScrollId)
+      setTimeout(() => setHighlightedId(null), 1500)
+      setPendingScrollId(null)
+    }
+  }, [pendingScrollId, messages])
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return
@@ -101,12 +114,16 @@ function ChatWindow({ coach, profile, token }) {
 
   const handleSelectHistory = (historyId) => {
     setPanelOpen(false)
-    const node = messageRefs.current[historyId]
-    if (node) {
-      node.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      setHighlightedId(historyId)
-      setTimeout(() => setHighlightedId(null), 1500)
+
+    if (messages.length === 0 && historyEntries.length > 0) {
+      const rebuiltMessages = historyEntries.flatMap((entry) => [
+        { role: 'user', content: entry.question, historyId: entry.id },
+        { role: 'assistant', content: entry.answer, sources: entry.sources, historyId: entry.id },
+      ])
+      setMessages(rebuiltMessages)
     }
+
+    setPendingScrollId(historyId)
   }
 
   const handleDeleteHistory = async () => {
