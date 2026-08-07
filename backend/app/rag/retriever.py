@@ -13,9 +13,18 @@ def load_vector_store():
     )
     return vector_store
 
-def retrieve_relevant_chunks(query, k=3):
+def retrieve_relevant_chunks(query, k=3, coach_type=None):
     vector_store = load_vector_store()
-    results = vector_store.similarity_search(query, k=k)
+
+    if coach_type:
+        results = vector_store.similarity_search(
+            query,
+            k=k,
+            filter={"coach_type": coach_type}
+        )
+    else:
+        results = vector_store.similarity_search(query, k=k)
+
     return results
 
 if __name__ == "__main__":

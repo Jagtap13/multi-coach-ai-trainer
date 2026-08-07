@@ -41,9 +41,9 @@ Question: {user_question}
 Answer:"""
     return prompt
 
-def get_rag_response(user_question, coach_type="bodybuilding", k=3,profile=None):
-    chunks = retrieve_relevant_chunks(user_question, k=k)
-    prompt = build_prompt(user_question, chunks, coach_type,profile=profile)
+def get_rag_response(user_question, coach_type="bodybuilding", k=3, profile=None):
+    chunks = retrieve_relevant_chunks(user_question, k=k, coach_type=coach_type)
+    prompt = build_prompt(user_question, chunks, coach_type=coach_type, profile=profile)
     answer = generate_response(prompt)
     return answer, chunks
 
@@ -67,7 +67,7 @@ def get_rag_response(user_question, coach_type="bodybuilding", k=3,profile=None)
 #             print(f"- {source}")
 
 if __name__ == "__main__":
-    question = "What rep range should I use to build muscle?"
+    question = "I have a shoulder injury but I really want to build muscle fast. What should I do?"
     sample_profile={
         "age":22,
         "weight_kg":65,

@@ -18,6 +18,12 @@ def load_and_chunk_documents():
     documents = loader.load()
     print(f"Loaded {len(documents)} documents")
 
+    # Tag each document with its coach type, derived from filename
+    for doc in documents:
+        filename = os.path.basename(doc.metadata.get("source", ""))
+        coach_type = filename.replace(".txt", "")
+        doc.metadata["coach_type"] = coach_type
+
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=400,
         chunk_overlap=50,
