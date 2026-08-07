@@ -45,6 +45,9 @@ function App() {
           <p className="text-(--color-chalk-dim) text-sm mt-1">
             Pick your coach, ask your question.
           </p>
+           <p className="text-(--color-chalk-dim) text-xs mt-1 opacity-70">
+          AI-generated fitness guidance — not a substitute for professional medical advice.
+        </p>
         </div>
         <button
           onClick={handleLogout}
