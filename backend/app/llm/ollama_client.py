@@ -7,7 +7,10 @@ def generate_response(prompt, model=MODEL_NAME):
     payload = {
         "model": model,
         "prompt": prompt,
-        "stream": False
+        "stream": False,
+        "options":{
+            "temperature":0.3
+        }
     }
 
     response = requests.post(OLLAMA_URL, json=payload)
