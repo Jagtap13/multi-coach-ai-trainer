@@ -216,8 +216,22 @@ function ChatWindow({ coach, profile, token }) {
         ))}
 
         {loading && (
-          <div className="self-start bg-(--color-bg-elevated) px-4 py-3 rounded-md text-sm text-(--color-chalk-dim)">
-            {coach.label} Coach is thinking...
+          <div className="self-start bg-(--color-bg-elevated) px-4 py-3 rounded-md flex items-center gap-3">
+            <span className="text-sm text-(--color-chalk-dim)">{coach.label} Coach is typing</span>
+            <span className="flex gap-1">
+              <span
+                className="typing-dot w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: coach.accent }}
+              />
+              <span
+                className="typing-dot w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: coach.accent }}
+              />
+              <span
+                className="typing-dot w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: coach.accent }}
+              />
+            </span>
           </div>
         )}
       </div>
