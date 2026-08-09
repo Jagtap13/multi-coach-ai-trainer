@@ -12,6 +12,7 @@ function ChatWindow({ coach, profile, token }) {
   const [panelOpen, setPanelOpen] = useState(false)
   const [highlightedId, setHighlightedId] = useState(null)
   const [pendingScrollId, setPendingScrollId] = useState(null)
+  const [copiedId, setCopiedId] = useState(null)
 
   const messageRefs = useRef({})
   const bottomRef = useRef(null)
@@ -166,6 +167,15 @@ function ChatWindow({ coach, profile, token }) {
       console.error('Failed to delete history entry:', err)
     }
   }
+  const handleCopy = async (content, messageIndex) => {
+    try {
+      await navigator.clipboard.writeText(content)
+      setCopiedId(messageIndex)
+      setTimeout(() => setCopiedId(null), 1500)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
 
   return (
     <div className="relative flex flex-col h-full">
@@ -205,7 +215,7 @@ function ChatWindow({ coach, profile, token }) {
             ref={(el) => {
               if (msg.historyId && msg.role === 'user') messageRefs.current[msg.historyId] = el
             }}
-            className={`max-w-[80%] px-4 py-3 rounded-md text-sm transition-all ${
+            className={`group relative max-w-[80%] px-4 py-3 rounded-md text-sm transition-all ${
               msg.role === 'user'
                 ? 'self-end bg-white/10'
                 : msg.role === 'error'
@@ -214,11 +224,31 @@ function ChatWindow({ coach, profile, token }) {
             } ${highlightedId === msg.historyId ? 'ring-2' : ''}`}
             style={highlightedId === msg.historyId ? { ringColor: coach.accent } : {}}
           >
-            <p className="whitespace-pre-wrap">{msg.content}</p>
+            <p className="whitespace-pre-wrap pr-6">{msg.content}</p>
             {msg.sources && msg.sources.length > 0 && (
               <p className="text-xs text-(--color-chalk-dim) mt-2 pt-2 border-t border-white/10">
                 Sources: {msg.sources.join(', ')}
               </p>
+            )}
+
+            {msg.role !== 'error' && (
+              <button
+                onClick={() => handleCopy(msg.content, i)}
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-(--color-chalk-dim) hover:text-(--color-chalk)"
+                aria-label="Copy message"
+                title={copiedId === i ? 'Copied!' : 'Copy'}
+              >
+                {copiedId === i ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                )}
+              </button>
             )}
           </div>
         ))}
