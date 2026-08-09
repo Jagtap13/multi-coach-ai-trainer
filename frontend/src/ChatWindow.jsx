@@ -14,6 +14,7 @@ function ChatWindow({ coach, profile, token }) {
   const [pendingScrollId, setPendingScrollId] = useState(null)
 
   const messageRefs = useRef({})
+  const bottomRef = useRef(null)
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -58,6 +59,13 @@ function ChatWindow({ coach, profile, token }) {
       setPendingScrollId(null)
     }
   }, [pendingScrollId, messages])
+
+  useEffect(() => {
+    if (pendingScrollId) return
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    }
+  }, [messages, loading])
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return
@@ -234,6 +242,7 @@ function ChatWindow({ coach, profile, token }) {
             </span>
           </div>
         )}
+        <div ref={bottomRef} />
       </div>
 
       <div className="border-t border-white/10 p-4 flex gap-3">
