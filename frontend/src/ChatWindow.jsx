@@ -204,9 +204,24 @@ function ChatWindow({ coach, profile, token }) {
         )}
 
         {!loadingHistory && messages.length === 0 && (
-          <p className="text-(--color-chalk-dim) text-sm m-auto">
-            Ask your {coach.label} Coach a question to get started.
-          </p>
+          <div className="m-auto flex flex-col items-center gap-4 max-w-md">
+            <p className="text-(--color-chalk-dim) text-sm text-center">
+              Ask your {coach.label} Coach a question to get started.
+            </p>
+            {coach.starterQuestions && (
+              <div className="flex flex-col gap-2 w-full">
+                {coach.starterQuestions.map((q, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setInput(q)}
+                    className="text-left text-xs px-3 py-2 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {messages.map((msg, i) => (

@@ -4,10 +4,50 @@ import ProfileForm from './ProfileForm'
 import AuthForm from './AuthForm'
 
 const COACHES = [
-  { id: 'bodybuilding', label: 'Bodybuilding', accent: 'var(--accent-bodybuilding)', tagline: 'Muscle & mass' },
-  { id: 'powerlifting', label: 'Powerlifting', accent: 'var(--accent-powerlifting)', tagline: 'Strength & power' },
-  { id: 'nutrition', label: 'Nutrition', accent: 'var(--accent-nutrition)', tagline: 'Diet & macros' },
-  { id: 'fatloss', label: 'Fat Loss', accent: 'var(--accent-fatloss)', tagline: 'Cutting & cardio' },
+  {
+    id: 'bodybuilding',
+    label: 'Bodybuilding',
+    accent: 'var(--accent-bodybuilding)',
+    tagline: 'Muscle & mass',
+    starterQuestions: [
+      'What rep range is best for building muscle?',
+      'Design a 4-day workout split for a beginner',
+      'How much training volume do I need per week?',
+    ],
+  },
+  {
+    id: 'powerlifting',
+    label: 'Powerlifting',
+    accent: 'var(--accent-powerlifting)',
+    tagline: 'Strength & power',
+    starterQuestions: [
+      'How do I increase my squat strength?',
+      'What percentage of my 1RM should I train at?',
+      'How long should I rest between heavy sets?',
+    ],
+  },
+  {
+    id: 'nutrition',
+    label: 'Nutrition',
+    accent: 'var(--accent-nutrition)',
+    tagline: 'Diet & macros',
+    starterQuestions: [
+      'How much protein do I need per day?',
+      'Give me a full daily diet plan for building muscle',
+      'What should I eat before and after a workout?',
+    ],
+  },
+  {
+    id: 'fatloss',
+    label: 'Fat Loss',
+    accent: 'var(--accent-fatloss)',
+    tagline: 'Cutting & cardio',
+    starterQuestions: [
+      'How do I lose fat without losing muscle?',
+      "What's a safe rate of weight loss per week?",
+      'Should I do cardio or just diet to lose fat?',
+    ],
+  },
 ]
 
 function App() {
