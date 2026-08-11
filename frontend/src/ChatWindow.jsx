@@ -176,11 +176,48 @@ function ChatWindow({ coach, profile, token }) {
       console.error('Failed to copy:', err)
     }
   }
+  const handleExport = () => {
+    if (messages.length === 0) return
+
+    const lines = [`${coach.label} Coach — Conversation Export`, `Exported: ${new Date().toLocaleString()}`, '']
+
+    messages.forEach((msg) => {
+      if (msg.role === 'user') {
+        lines.push(`You: ${msg.content}`)
+      } else if (msg.role === 'assistant') {
+        lines.push(`${coach.label} Coach: ${msg.content}`)
+        if (msg.sources && msg.sources.length > 0) {
+          lines.push(`(Sources: ${msg.sources.join(', ')})`)
+        }
+      }
+      lines.push('')
+    })
+
+    const text = lines.join('\n')
+    const blob = new Blob([text], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${coach.id}-conversation-${new Date().toISOString().slice(0, 10)}.txt`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="relative flex flex-col h-full">
       <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-4">
         <div className="flex justify-end gap-2">
+          {messages.length > 0 && !loadingHistory && (
+            <button
+              onClick={handleExport}
+              className="text-xs uppercase tracking-wide px-3 py-1.5 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
+            >
+              Export
+            </button>
+          )}
           {historyEntries.length > 0 && (
             <button
               onClick={() => setPanelOpen(true)}
