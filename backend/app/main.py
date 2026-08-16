@@ -40,6 +40,7 @@ class UserProfile(BaseModel):
     weight_kg: float | None = None
     experience_level: str | None = None  # beginner, intermediate, advanced
     goal: str | None = None
+    gender: str | None = None
 
 class ChatRequest(BaseModel):
     question: str
@@ -98,42 +99,7 @@ def chat(request: ChatRequest, current_user=Depends(get_current_user), db: Sessi
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/chat/history")
-def get_chat_history(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
-    records = db.query(ChatHistory).filter(
-        ChatHistory.user_id == current_user.id
-    ).order_by(ChatHistory.created_at.desc()).all()
-
-    return [
-        {
-            "id": r.id,
-            "coach_type": r.coach_type,
-            "question": r.question,
-            "answer": r.answer,
-            "sources": r.sources.split(",") if r.sources else [],
-            "created_at": r.created_at.isoformat()
-        }
-        for r in records
-    ]
-
-@app.delete("/chat/history")
-def clear_chat_history(
-    coach_type: str | None = None,
-    current_user=Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    query = db.query(ChatHistory).filter(ChatHistory.user_id == current_user.id)
-
-    if coach_type:
-        if coach_type.lower() not in COACH_PROMPTS:
-            raise HTTPException(status_code=400, detail="Invalid coach_type")
-        query = query.filter(ChatHistory.coach_type == coach_type)
-
-    deleted_count = query.delete()
-    db.commit()
-
-    return {"deleted": deleted_count}
-
+    
 @app.delete("/chat/history")
 def clear_chat_history(
     coach_type: str | None = None,
