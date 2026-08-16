@@ -19,3 +19,4 @@ class User(Base):
     weight_kg = Column(Float, nullable=True)
     experience_level = Column(String, nullable=True)
     goal = Column(String, nullable=True)
+    gender = Column(String, nullable=True)

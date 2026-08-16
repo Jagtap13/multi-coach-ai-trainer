@@ -1,29 +1,25 @@
 import { useState } from 'react'
 import ContextMenu from './ContextMenu'
 
-function HistoryPanel({ isOpen, onClose, entries, onSelect, onDelete, onDeleteSingle, coachLabel }) {
+function HistoryPanel({ isOpen, onClose, conversations, onSelect, onDelete, coachLabel }) {
   const [contextMenu, setContextMenu] = useState(null)
 
   if (!isOpen) return null
 
-  const openMenuAt = (x, y, entryId) => {
-    setContextMenu({ x, y, entryId })
-  }
-
-  const handleRightClick = (e, entryId) => {
+  const handleRightClick = (e, convId) => {
     e.preventDefault()
-    openMenuAt(e.clientX, e.clientY, entryId)
+    setContextMenu({ x: e.clientX, y: e.clientY, convId })
   }
 
-  const handleDotsClick = (e, entryId) => {
+  const handleDotsClick = (e, convId) => {
     e.stopPropagation()
     const rect = e.currentTarget.getBoundingClientRect()
-    openMenuAt(rect.right - 140, rect.bottom + 4, entryId)
+    setContextMenu({ x: rect.right - 140, y: rect.bottom + 4, convId })
   }
 
-  const handleDeleteSingle = () => {
+  const handleDeleteFromMenu = () => {
     if (contextMenu) {
-      onDeleteSingle(contextMenu.entryId)
+      onDelete(contextMenu.convId)
       setContextMenu(null)
     }
   }
@@ -35,7 +31,7 @@ function HistoryPanel({ isOpen, onClose, entries, onSelect, onDelete, onDeleteSi
       <div className="relative w-72 h-full bg-(--color-bg-elevated) border-l border-white/10 flex flex-col">
         <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
           <h3 className="text-xs uppercase tracking-widest text-(--color-chalk-dim)">
-            {coachLabel} History
+            {coachLabel} Conversations
           </h3>
           <button
             onClick={onClose}
@@ -45,44 +41,33 @@ function HistoryPanel({ isOpen, onClose, entries, onSelect, onDelete, onDeleteSi
           </button>
         </div>
 
-        {entries.length > 0 && (
-          <div className="px-4 py-3 border-b border-white/10">
-            <button
-              onClick={onDelete}
-              className="text-xs uppercase tracking-wide text-red-400 hover:text-red-300 transition-all"
-            >
-              Delete All History
-            </button>
-          </div>
-        )}
-
         <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2">
-          {entries.length === 0 && (
+          {conversations.length === 0 && (
             <p className="text-xs text-(--color-chalk-dim) px-2 py-4 text-center">
               No conversations yet.
             </p>
           )}
 
-          {entries.map((entry) => (
+          {conversations.map((conv) => (
             <div
-              key={entry.id}
-              onContextMenu={(e) => handleRightClick(e, entry.id)}
+              key={conv.conversation_id}
+              onContextMenu={(e) => handleRightClick(e, conv.conversation_id)}
               className="relative flex items-start gap-1 rounded-md hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
             >
               <button
-                onClick={() => onSelect(entry.id)}
+                onClick={() => onSelect(conv.conversation_id)}
                 className="flex-1 text-left px-3 py-2 min-w-0"
               >
                 <p className="text-xs text-(--color-chalk) line-clamp-2">
-                  {entry.question}
+                  {conv.title}
                 </p>
                 <p className="text-[10px] text-(--color-chalk-dim) mt-1">
-                  {new Date(entry.created_at).toLocaleString()}
+                  {new Date(conv.created_at).toLocaleDateString()} · {conv.message_count} message{conv.message_count !== 1 ? 's' : ''}
                 </p>
               </button>
 
               <button
-                onClick={(e) => handleDotsClick(e, entry.id)}
+                onClick={(e) => handleDotsClick(e, conv.conversation_id)}
                 className="shrink-0 px-2 py-2 text-(--color-chalk-dim) hover:text-(--color-chalk) text-sm"
                 aria-label="More options"
               >
@@ -97,7 +82,7 @@ function HistoryPanel({ isOpen, onClose, entries, onSelect, onDelete, onDeleteSi
         <ContextMenu
           x={contextMenu.x}
           y={contextMenu.y}
-          onDelete={handleDeleteSingle}
+          onDelete={handleDeleteFromMenu}
           onClose={() => setContextMenu(null)}
         />
       )}

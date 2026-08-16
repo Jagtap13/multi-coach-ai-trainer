@@ -19,6 +19,7 @@ function ProfileForm({ profile, setProfile, token }) {
             weight_kg: data.weight_kg ?? '',
             experience_level: data.experience_level ?? '',
             goal: data.goal ?? '',
+            gender: data.gender ?? '',
           })
         }
       } catch (err) {
@@ -48,6 +49,7 @@ function ProfileForm({ profile, setProfile, token }) {
           weight_kg: profile.weight_kg ? parseFloat(profile.weight_kg) : null,
           experience_level: profile.experience_level || null,
           goal: profile.goal || null,
+          gender: profile.gender || null,
         }),
       })
 
@@ -81,6 +83,19 @@ function ProfileForm({ profile, setProfile, token }) {
             placeholder="e.g. 22"
             className="w-full bg-(--color-bg-elevated) rounded-md px-3 py-2 text-sm outline-none placeholder:text-(--color-chalk-dim)"
           />
+        </div>
+        <div>
+          <label className="text-xs text-(--color-chalk-dim) block mb-1">Gender</label>
+          <select
+            value={profile.gender}
+            onChange={(e) => handleChange('gender', e.target.value)}
+            className="w-full bg-(--color-bg-elevated) rounded-md px-3 py-2 text-sm outline-none"
+          >
+            <option value="">Prefer not to say</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
         </div>
 
         <div>

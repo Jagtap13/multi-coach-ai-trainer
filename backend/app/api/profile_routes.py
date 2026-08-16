@@ -19,12 +19,13 @@ class ProfileUpdate(BaseModel):
     weight_kg: float | None = None
     experience_level: str | None = None
     goal: str | None = None
-
+    gender: str | None = None
 class ProfileResponse(BaseModel):
     age: int | None
     weight_kg: float | None
     experience_level: str | None
     goal: str | None
+    gender: str | None
 
     class Config:
         from_attributes = True
@@ -47,6 +48,8 @@ def update_profile(
         current_user.experience_level = updates.experience_level
     if updates.goal is not None:
         current_user.goal = updates.goal
+    if updates.gender is not None:
+        current_user.gender = updates.gender
 
     db.commit()
     db.refresh(current_user)

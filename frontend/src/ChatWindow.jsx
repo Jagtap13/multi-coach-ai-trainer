@@ -5,64 +5,40 @@ const API_URL = 'http://127.0.0.1:8000'
 
 function ChatWindow({ coach, profile, token }) {
   const [messages, setMessages] = useState([])
-  const [historyEntries, setHistoryEntries] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [loadingHistory, setLoadingHistory] = useState(true)
   const [panelOpen, setPanelOpen] = useState(false)
-  const [highlightedId, setHighlightedId] = useState(null)
-  const [pendingScrollId, setPendingScrollId] = useState(null)
   const [copiedId, setCopiedId] = useState(null)
+  const [conversationId, setConversationId] = useState(null)
+  const [conversations, setConversations] = useState([])
 
-  const messageRefs = useRef({})
   const bottomRef = useRef(null)
 
   useEffect(() => {
-    const loadHistory = async () => {
+    const loadConversations = async () => {
       setLoadingHistory(true)
       try {
-        const response = await fetch(`${API_URL}/chat/history`, {
+        const response = await fetch(`${API_URL}/chat/conversations?coach_type=${coach.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (response.ok) {
           const data = await response.json()
-          const coachHistory = data
-            .filter((entry) => entry.coach_type === coach.id)
-            .reverse()
-
-          setHistoryEntries(coachHistory)
-
-          const historyMessages = coachHistory.flatMap((entry) => [
-            { role: 'user', content: entry.question, historyId: entry.id },
-            { role: 'assistant', content: entry.answer, sources: entry.sources, historyId: entry.id },
-          ])
-
-          setMessages(historyMessages)
+          setConversations(data)
         }
       } catch (err) {
-        console.error('Failed to load chat history:', err)
+        console.error('Failed to load conversations:', err)
       } finally {
         setLoadingHistory(false)
       }
     }
 
-    if (token) loadHistory()
+    setMessages([])
+    setConversationId(null)
+    if (token) loadConversations()
   }, [coach.id, token])
 
   useEffect(() => {
-    if (!pendingScrollId) return
-
-    const node = messageRefs.current[pendingScrollId]
-    if (node) {
-      node.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      setHighlightedId(pendingScrollId)
-      setTimeout(() => setHighlightedId(null), 1500)
-      setPendingScrollId(null)
-    }
-  }, [pendingScrollId, messages])
-
-  useEffect(() => {
-    if (pendingScrollId) return
     if (bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
     }
@@ -86,11 +62,13 @@ function ChatWindow({ coach, profile, token }) {
         body: JSON.stringify({
           question: userMessage.content,
           coach_type: coach.id,
+          conversation_id: conversationId,
           profile: {
             age: profile.age ? parseInt(profile.age) : null,
             weight_kg: profile.weight_kg ? parseFloat(profile.weight_kg) : null,
             experience_level: profile.experience_level || null,
             goal: profile.goal || null,
+            gender: profile.gender || null,
           },
         }),
       })
@@ -100,6 +78,7 @@ function ChatWindow({ coach, profile, token }) {
       }
 
       const data = await response.json()
+      setConversationId(data.conversation_id)
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: data.answer, sources: data.sources },
@@ -121,52 +100,6 @@ function ChatWindow({ coach, profile, token }) {
     }
   }
 
-  const handleSelectHistory = (historyId) => {
-    setPanelOpen(false)
-
-    if (messages.length === 0 && historyEntries.length > 0) {
-      const rebuiltMessages = historyEntries.flatMap((entry) => [
-        { role: 'user', content: entry.question, historyId: entry.id },
-        { role: 'assistant', content: entry.answer, sources: entry.sources, historyId: entry.id },
-      ])
-      setMessages(rebuiltMessages)
-    }
-
-    setPendingScrollId(historyId)
-  }
-
-  const handleDeleteHistory = async () => {
-    const confirmed = window.confirm(`Delete all ${coach.label} conversation history? This cannot be undone.`)
-    if (!confirmed) return
-
-    try {
-      const response = await fetch(`${API_URL}/chat/history?coach_type=${coach.id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (response.ok) {
-        setHistoryEntries([])
-        setMessages([])
-        setPanelOpen(false)
-      }
-    } catch (err) {
-      console.error('Failed to delete history:', err)
-    }
-  }
-  const handleDeleteSingleHistory = async (historyId) => {
-    try {
-      const response = await fetch(`${API_URL}/chat/history/${historyId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (response.ok) {
-        setHistoryEntries((prev) => prev.filter((e) => e.id !== historyId))
-        setMessages((prev) => prev.filter((m) => m.historyId !== historyId))
-      }
-    } catch (err) {
-      console.error('Failed to delete history entry:', err)
-    }
-  }
   const handleCopy = async (content, messageIndex) => {
     try {
       await navigator.clipboard.writeText(content)
@@ -205,11 +138,66 @@ function ChatWindow({ coach, profile, token }) {
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
   }
+  const handleNewChat = () => {
+    setMessages([])
+    setConversationId(null)
+  }
+
+  const loadConversation = async (convId) => {
+    setLoadingHistory(true)
+    try {
+      const response = await fetch(`${API_URL}/chat/conversations/${convId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (response.ok) {
+        const data = await response.json()
+        const loadedMessages = data.flatMap((entry) => [
+          { role: 'user', content: entry.question },
+          { role: 'assistant', content: entry.answer, sources: entry.sources },
+        ])
+        setMessages(loadedMessages)
+        setConversationId(convId)
+      }
+    } catch (err) {
+      console.error('Failed to load conversation:', err)
+    } finally {
+      setLoadingHistory(false)
+      setPanelOpen(false)
+    }
+  }
+
+  const handleDeleteConversation = async (convId) => {
+    const confirmed = window.confirm('Delete this conversation? This cannot be undone.')
+    if (!confirmed) return
+
+    try {
+      const response = await fetch(`${API_URL}/chat/history?conversation_id=${convId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (response.ok) {
+        setConversations((prev) => prev.filter((c) => c.conversation_id !== convId))
+        if (conversationId === convId) {
+          setMessages([])
+          setConversationId(null)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to delete conversation:', err)
+    }
+  }
 
   return (
     <div className="relative flex flex-col h-full">
       <div className="flex-1 overflow-y-auto px-6 py-6 flex flex-col gap-4">
         <div className="flex justify-end gap-2">
+          <button
+            onClick={handleNewChat}
+            className="text-xs uppercase tracking-wide px-3 py-1.5 rounded-md font-medium transition-opacity"
+            style={{ backgroundColor: coach.accent, color: '#1C1D1F' }}
+          >
+            + New Chat
+          </button>
           {messages.length > 0 && !loadingHistory && (
             <button
               onClick={handleExport}
@@ -218,20 +206,12 @@ function ChatWindow({ coach, profile, token }) {
               Export
             </button>
           )}
-          {historyEntries.length > 0 && (
+          {conversations.length > 0 && (
             <button
               onClick={() => setPanelOpen(true)}
               className="text-xs uppercase tracking-wide px-3 py-1.5 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
             >
               History
-            </button>
-          )}
-          {messages.length > 0 && !loadingHistory && (
-            <button
-              onClick={() => setMessages([])}
-              className="text-xs uppercase tracking-wide px-3 py-1.5 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
-            >
-              Clear View
             </button>
           )}
         </div>
@@ -264,17 +244,13 @@ function ChatWindow({ coach, profile, token }) {
         {messages.map((msg, i) => (
           <div
             key={i}
-            ref={(el) => {
-              if (msg.historyId && msg.role === 'user') messageRefs.current[msg.historyId] = el
-            }}
             className={`group relative max-w-[80%] px-4 py-3 rounded-md text-sm transition-all ${
               msg.role === 'user'
                 ? 'self-end bg-white/10'
                 : msg.role === 'error'
                 ? 'self-start bg-red-900/30 text-red-300'
                 : 'self-start bg-(--color-bg-elevated)'
-            } ${highlightedId === msg.historyId ? 'ring-2' : ''}`}
-            style={highlightedId === msg.historyId ? { ringColor: coach.accent } : {}}
+            }`}
           >
             <p className="whitespace-pre-wrap pr-6">{msg.content}</p>
             {msg.sources && msg.sources.length > 0 && (
@@ -349,10 +325,9 @@ function ChatWindow({ coach, profile, token }) {
       <HistoryPanel
         isOpen={panelOpen}
         onClose={() => setPanelOpen(false)}
-        entries={historyEntries}
-        onSelect={handleSelectHistory}
-        onDelete={handleDeleteHistory}
-        onDeleteSingle={handleDeleteSingleHistory}
+        conversations={conversations}
+        onSelect={loadConversation}
+        onDelete={handleDeleteConversation}
         coachLabel={coach.label}
       />
     </div>

@@ -24,6 +24,8 @@ def build_prompt(user_question, retrieved_chunks, coach_type, profile=None):
             details.append(f"Experience_level: {profile['experience_level']}")
         if profile.get("goal"):
             details.append(f"Goal: {profile['goal']}")
+        if profile.get("gender"):
+            details.append(f"Gender: {profile['gender']}")
 
         if details:
             profile_section = f"\nUser profile:\n{chr(10).join(details)}\n\nTailor your answer specifically to this user's profile above — consider their experience level and goal when giving advice.\n"

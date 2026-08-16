@@ -58,6 +58,7 @@ function App() {
     weight_kg: '',
     experience_level: '',
     goal: '',
+    gender: '',
   })
 
   const activeCoach = COACHES.find((c) => c.id === selectedCoach)

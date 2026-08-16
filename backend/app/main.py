@@ -134,24 +134,21 @@ def clear_chat_history(
 
     return {"deleted": deleted_count}
 
-@app.delete("/chat/history/{history_id}")
-def delete_single_history(
-    history_id: int,
+@app.delete("/chat/history")
+def clear_chat_history(
+    coach_type: str | None = None,
+    conversation_id: str | None = None,
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    record = db.query(ChatHistory).filter(
-        ChatHistory.id == history_id,
-        ChatHistory.user_id == current_user.id
-    ).first()
-
-    if not record:
-        raise HTTPException(status_code=404, detail="History record not found")
-
-    db.delete(record)
+    query = db.query(ChatHistory).filter(ChatHistory.user_id == current_user.id)
+    if coach_type:
+        query = query.filter(ChatHistory.coach_type == coach_type)
+    if conversation_id:
+        query = query.filter(ChatHistory.conversation_id == conversation_id)
+    deleted_count = query.delete()
     db.commit()
-
-    return {"deleted": history_id}
+    return {"deleted": deleted_count}
 
 @app.get("/chat/conversations")
 def list_conversations(coach_type: str, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
