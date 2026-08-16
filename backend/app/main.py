@@ -1,5 +1,6 @@
 import sys
 import os
+import uuid
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "rag"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "llm"))
@@ -44,11 +45,13 @@ class ChatRequest(BaseModel):
     question: str
     coach_type: str = "bodybuilding"
     profile: UserProfile | None = None
+    conversation_id: str | None = None
 
 class ChatResponse(BaseModel):
     answer: str
     coach_type: str
     sources: list[str]
+    conversation_id: str
 
 @app.get("/")
 def root():
@@ -73,10 +76,11 @@ def chat(request: ChatRequest, current_user=Depends(get_current_user), db: Sessi
             profile=request.profile.model_dump() if request.profile else None
         )
         sources = list(set(os.path.basename(c.metadata.get("source", "unknown")) for c in chunks))
-
+        conv_id = request.conversation_id or str(uuid.uuid4())
         # Save to chat history
         history_entry = ChatHistory(
             user_id=current_user.id,
+            conversation_id=conv_id,
             coach_type=request.coach_type,
             question=request.question,
             answer=answer,
@@ -88,7 +92,8 @@ def chat(request: ChatRequest, current_user=Depends(get_current_user), db: Sessi
         return ChatResponse(
             answer=answer,
             coach_type=request.coach_type,
-            sources=sources
+            sources=sources,
+            conversation_id=conv_id
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -147,3 +152,46 @@ def delete_single_history(
     db.commit()
 
     return {"deleted": history_id}
+
+@app.get("/chat/conversations")
+def list_conversations(coach_type: str, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    records = db.query(ChatHistory).filter(
+        ChatHistory.user_id == current_user.id,
+        ChatHistory.coach_type == coach_type
+    ).order_by(ChatHistory.created_at.asc()).all()
+
+    conversations = {}
+    for r in records:
+        if r.conversation_id not in conversations:
+            conversations[r.conversation_id] = {
+                "conversation_id": r.conversation_id,
+                "title": r.question[:60],
+                "created_at": r.created_at.isoformat(),
+                "message_count": 0,
+            }
+        conversations[r.conversation_id]["message_count"] += 1
+
+    result = list(conversations.values())
+    result.sort(key=lambda c: c["created_at"], reverse=True)
+    return result
+
+@app.get("/chat/conversations/{conversation_id}")
+def get_conversation_messages(conversation_id: str, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    records = db.query(ChatHistory).filter(
+        ChatHistory.user_id == current_user.id,
+        ChatHistory.conversation_id == conversation_id
+    ).order_by(ChatHistory.created_at.asc()).all()
+
+    if not records:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    return [
+        {
+            "id": r.id,
+            "question": r.question,
+            "answer": r.answer,
+            "sources": r.sources.split(",") if r.sources else [],
+            "created_at": r.created_at.isoformat(),
+        }
+        for r in records
+    ]
