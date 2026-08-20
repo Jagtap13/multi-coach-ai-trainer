@@ -347,23 +347,28 @@ function ChatWindow({ coach, profile, token }) {
           rows={1}
           className="flex-1 bg-(--color-bg-elevated) rounded-md px-4 py-3 text-sm resize-none outline-none placeholder:text-(--color-chalk-dim)"
         />
-        <button
-          onClick={handleVoiceInput}
-          className={`px-4 py-2 rounded-md transition-all ${
-            isListening
-              ? 'bg-red-500/20 text-red-400 animate-pulse'
-              : 'border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30'
-          }`}
-          aria-label={isListening ? 'Stop listening' : 'Voice input'}
-          title={isListening ? 'Stop listening' : 'Voice input'}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-            <line x1="12" y1="19" x2="12" y2="23" />
-            <line x1="8" y1="23" x2="16" y2="23" />
-          </svg>
-        </button>
+                <div className="relative">
+          <button
+            onClick={handleVoiceInput}
+            className={`px-4 py-2 rounded-md transition-all ${
+              isListening
+                ? 'bg-red-500/20 text-red-400 animate-pulse'
+                : 'border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30'
+            }`}
+            aria-label={isListening ? 'Stop listening' : 'Voice input'}
+            title={isListening ? 'Stop listening (Beta — reliability varies by browser)' : 'Voice input (Beta — reliability varies by browser)'}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="23" />
+              <line x1="8" y1="23" x2="16" y2="23" />
+            </svg>
+          </button>
+          <span className="absolute -top-1.5 -right-1.5 text-[8px] uppercase tracking-wide bg-white/10 text-(--color-chalk-dim) px-1 py-0.5 rounded">
+            Beta
+          </span>
+        </div>
         <button
           onClick={sendMessage}
           disabled={loading || !input.trim()}
