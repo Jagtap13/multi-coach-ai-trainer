@@ -73,27 +73,26 @@ Saved to Chat History (PostgreSQL)
 
 ## Project Structure
 
-```
+```text
 ai-trainer-simulator/
-  backend/
-    app/
-      main.py            FastAPI app - chat + conversation endpoints
-      rag/                Knowledge base, ingestion, retrieval
-      coaches/            Coach personality prompts + safety rules
-      services/           RAG pipeline - prompt building + LLM calls
-      llm/                Ollama client
-      models/             SQLAlchemy models (User, ChatHistory)
-      api/                Auth + profile routes
-      core/               Database, security, auth dependency
-  frontend/
-    src/
-      App.jsx             Main layout, coach selection, profile
-      ChatWindow.jsx      Chat UI, session threading, voice input
-      HistoryPanel.jsx    Conversation history list
-      ProfileForm.jsx     User profile form
-      AuthForm.jsx        Login / register
+├── backend/
+│   ├── app/
+│   │   ├── main.py            # FastAPI app - chat + conversation endpoints
+│   │   ├── rag/               # Knowledge base, ingestion, retrieval
+│   │   ├── coaches/           # Coach personality prompts + safety rules
+│   │   ├── services/          # RAG pipeline - prompt building + LLM calls
+│   │   ├── llm/               # Ollama client
+│   │   ├── models/            # SQLAlchemy models (User, ChatHistory)
+│   │   ├── api/               # Auth + profile routes
+│   │   └── core/              # Database, security, auth dependency
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx            # Main layout, coach selection, profile
+│   │   ├── ChatWindow.jsx     # Chat UI, session threading, voice input
+│   │   ├── HistoryPanel.jsx   # Conversation history list
+│   │   ├── ProfileForm.jsx    # User profile form
+│   │   └── AuthForm.jsx       # Login / register
 ```
-
 
 ## Setup
 
