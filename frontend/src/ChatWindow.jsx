@@ -12,7 +12,9 @@ function ChatWindow({ coach, profile, token }) {
   const [copiedId, setCopiedId] = useState(null)
   const [conversationId, setConversationId] = useState(null)
   const [conversations, setConversations] = useState([])
+  const [isListening, setIsListening] = useState(false)
 
+  const recognitionRef = useRef(null)
   const bottomRef = useRef(null)
 
   useEffect(() => {
@@ -186,6 +188,39 @@ function ChatWindow({ coach, profile, token }) {
       console.error('Failed to delete conversation:', err)
     }
   }
+  const handleVoiceInput = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+
+    if (!SpeechRecognition) {
+      alert('Voice input is not supported in this browser. Try Chrome or Edge.')
+      return
+    }
+
+    if (isListening) {
+      recognitionRef.current?.stop()
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+    recognition.continuous = false
+    recognition.interimResults = false
+    recognition.lang = 'en-US'
+
+    recognition.onstart = () => setIsListening(true)
+    recognition.onend = () => setIsListening(false)
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error)
+      setIsListening(false)
+    }
+    recognition.onresult = (event) => {
+      console.log('Speech recognition result event:', event)
+      const transcript = event.results[0][0].transcript
+      console.log('Transcript:', transcript)
+      setInput((prev) => (prev ? `${prev} ${transcript}` : transcript))
+    }
+    recognitionRef.current = recognition
+    recognition.start()
+  }
 
   return (
     <div className="relative flex flex-col h-full">
@@ -308,10 +343,32 @@ function ChatWindow({ coach, profile, token }) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={`Ask the ${coach.label} Coach...`}
+          placeholder={isListening ? 'Listening...' : `Ask the ${coach.label} Coach...`}
           rows={1}
           className="flex-1 bg-(--color-bg-elevated) rounded-md px-4 py-3 text-sm resize-none outline-none placeholder:text-(--color-chalk-dim)"
         />
+                <div className="relative">
+          <button
+            onClick={handleVoiceInput}
+            className={`px-4 py-2 rounded-md transition-all ${
+              isListening
+                ? 'bg-red-500/20 text-red-400 animate-pulse'
+                : 'border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30'
+            }`}
+            aria-label={isListening ? 'Stop listening' : 'Voice input'}
+            title={isListening ? 'Stop listening (Beta — reliability varies by browser)' : 'Voice input (Beta — reliability varies by browser)'}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="23" />
+              <line x1="8" y1="23" x2="16" y2="23" />
+            </svg>
+          </button>
+          <span className="absolute -top-1.5 -right-1.5 text-[8px] uppercase tracking-wide bg-white/10 text-(--color-chalk-dim) px-1 py-0.5 rounded">
+            Beta
+          </span>
+        </div>
         <button
           onClick={sendMessage}
           disabled={loading || !input.trim()}
