@@ -302,7 +302,7 @@ function ChatWindow({ coach, profile, token }) {
         )}
         <div ref={bottomRef} />
       </div>
-
+      <div>  
       <div className="border-t border-white/10 p-4 flex gap-3">
         <textarea
           value={input}
@@ -321,7 +321,10 @@ function ChatWindow({ coach, profile, token }) {
           Send
         </button>
       </div>
-
+      <p className="text-[11px] text-(--color-chalk-dim) mt-1.5 px-1">
+          Enter to send · Shift + Enter for new line
+        </p>
+      </div>
       <HistoryPanel
         isOpen={panelOpen}
         onClose={() => setPanelOpen(false)}
