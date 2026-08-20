@@ -88,7 +88,7 @@ def chat(request: ChatRequest, current_user=Depends(get_current_user), db: Sessi
             sources=",".join(sources)
         )
         db.add(history_entry)
-        db.commit()
+        db.commit() 
 
         return ChatResponse(
             answer=answer,
