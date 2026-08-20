@@ -52,6 +52,7 @@ An AI-powered fitness coaching platform featuring four specialized coach persona
 - Tailwind CSS v4
 
 ## Architecture
+
 ```text
 User Question
 │
@@ -65,9 +66,9 @@ Coach Personality Prompt + Safety Clause + User Profile
 Llama 3 (via Ollama)  →  Response
 │
 ▼
-Saved to Chat History (PostgreSQL)
+Saved to Chat History (PostgreSQL)```
 
-Each coach's knowledge base is embedded and tagged with `coach_type` metadata at ingestion time, so retrieval is filtered per-coach — the Bodybuilding coach only ever searches bodybuilding content, and so on.
+- Each coach's knowledge base is embedded and tagged with `coach_type` metadata at ingestion time, so retrieval is filtered per-coach — the Bodybuilding coach only ever searches bodybuilding content, and so on.
 
 ## Project Structure
 
