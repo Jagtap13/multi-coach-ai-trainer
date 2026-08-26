@@ -71,10 +71,23 @@ def chat(request: ChatRequest, current_user=Depends(get_current_user), db: Sessi
         )
 
     try:
+        conversation_history = None
+        if request.conversation_id:
+            prior_turns = db.query(ChatHistory).filter(
+                ChatHistory.user_id == current_user.id,
+                ChatHistory.conversation_id == request.conversation_id
+            ).order_by(ChatHistory.created_at.asc()).all()
+            if prior_turns:
+                recent_turns = prior_turns[-3:]
+                conversation_history = [
+                    {"question": t.question, "answer": t.answer} for t in recent_turns
+                ]
+
         answer, chunks = get_rag_response(
             request.question,
             coach_type=request.coach_type,
-            profile=request.profile.model_dump() if request.profile else None
+            profile=request.profile.model_dump() if request.profile else None,
+            conversation_history=conversation_history
         )
         sources = list(set(os.path.basename(c.metadata.get("source", "unknown")) for c in chunks))
         conv_id = request.conversation_id or str(uuid.uuid4())
@@ -157,4 +170,4 @@ def get_conversation_messages(conversation_id: str, current_user=Depends(get_cur
             "created_at": r.created_at.isoformat(),
         }
         for r in records
-    ]
+    ] 
