@@ -2,6 +2,7 @@ import { useState } from 'react'
 import ChatWindow from './ChatWindow'
 import ProfileForm from './ProfileForm'
 import AuthForm from './AuthForm'
+import ProgressTracker from './ProgressTracker'
 
 const COACHES = [
   {
@@ -53,6 +54,7 @@ const COACHES = [
 function App() {
   const [token , setToken] = useState(() => localStorage.getItem('token')) 
   const [selectedCoach, setSelectedCoach] = useState('bodybuilding')
+  const [view, setView] = useState('coaches')
   const [profile, setProfile] = useState({
     age: '',
     weight_kg: '',
@@ -98,43 +100,76 @@ function App() {
         </button>
       </header>
 
-      <div className="flex flex-col md:flex-row flex-1 max-w-5xl mx-auto w-full px-4 md:px-8 py-4 md:py-8 gap-4 md:gap-8 min-h-0">
-        <aside className="w-full md:w-64 shrink-0 overflow-y-auto md:max-h-none max-h-[45vh]">
-          <h2 className="text-xs uppercase tracking-widest text-(--color-chalk-dim) mb-3">
-            Select Coach
-          </h2>
-          <div className="flex flex-col gap-2">
-            {COACHES.map((coach) => (
-              <button
-                key={coach.id}
-                onClick={() => setSelectedCoach(coach.id)}
-                className={`text-left px-4 py-3 rounded-md border transition-all ${
-                  selectedCoach === coach.id
-                    ? 'border-white/30 bg-white/5'
-                    : 'border-white/10 hover:border-white/20'
-                }`}
-                style={{
-                  borderLeftWidth: '4px',
-                  borderLeftColor: coach.accent,
-                }}
-              >
-                <div className="font-[Oswald] uppercase text-sm tracking-wide">
-                  {coach.label}
-                </div>
-                <div className="text-xs text-(--color-chalk-dim) mt-0.5">
-                  {coach.tagline}
-                </div>
-              </button>
-            ))}
-          </div>
-
-          <ProfileForm profile={profile} setProfile={setProfile} token={token}/>
-        </aside>
-
-        <main className="flex-1 border border-white/10 rounded-md overflow-hidden">
-          <ChatWindow coach={activeCoach} profile={profile} token={token} />
-        </main>
+            <div className="flex gap-2 max-w-5xl mx-auto w-full px-4 md:px-8 pt-4 md:pt-8">
+        <button
+          onClick={() => setView('coaches')}
+          className={`text-xs uppercase tracking-wide px-4 py-2 rounded-md border transition-all ${
+            view === 'coaches'
+              ? 'border-white/30 bg-white/5'
+              : 'border-white/10 text-(--color-chalk-dim) hover:border-white/20'
+          }`}
+        >
+          Coaches
+        </button>
+        <button
+          onClick={() => setView('progress')}
+          className={`text-xs uppercase tracking-wide px-4 py-2 rounded-md border transition-all ${
+            view === 'progress'
+              ? 'border-white/30 bg-white/5'
+              : 'border-white/10 text-(--color-chalk-dim) hover:border-white/20'
+          }`}
+        >
+          Progress
+        </button>
       </div>
+
+      {view === 'coaches' && (
+        <div className="flex flex-col md:flex-row flex-1 max-w-5xl mx-auto w-full px-4 md:px-8 py-4 md:py-8 gap-4 md:gap-8 min-h-0">
+          <aside className="w-full md:w-64 shrink-0 overflow-y-auto md:max-h-none max-h-[45vh]">
+            <h2 className="text-xs uppercase tracking-widest text-(--color-chalk-dim) mb-3">
+              Select Coach
+            </h2>
+            <div className="flex flex-col gap-2">
+              {COACHES.map((coach) => (
+                <button
+                  key={coach.id}
+                  onClick={() => setSelectedCoach(coach.id)}
+                  className={`text-left px-4 py-3 rounded-md border transition-all ${
+                    selectedCoach === coach.id
+                      ? 'border-white/30 bg-white/5'
+                      : 'border-white/10 hover:border-white/20'
+                  }`}
+                  style={{
+                    borderLeftWidth: '4px',
+                    borderLeftColor: coach.accent,
+                  }}
+                >
+                  <div className="font-[Oswald] uppercase text-sm tracking-wide">
+                    {coach.label}
+                  </div>
+                  <div className="text-xs text-(--color-chalk-dim) mt-0.5">
+                    {coach.tagline}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <ProfileForm profile={profile} setProfile={setProfile} token={token}/>
+          </aside>
+
+          <main className="flex-1 border border-white/10 rounded-md overflow-hidden">
+            <ChatWindow coach={activeCoach} profile={profile} token={token} />
+          </main>
+        </div>
+      )}
+
+      {view === 'progress' && (
+        <div className="flex-1 max-w-5xl mx-auto w-full px-4 md:px-8 py-4 md:py-8 min-h-0">
+          <div className="h-full border border-white/10 rounded-md overflow-hidden">
+            <ProgressTracker token={token} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
