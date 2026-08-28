@@ -32,7 +32,7 @@ An AI-powered fitness coaching platform featuring four specialized coach persona
 - **Session-based chat threading** — ChatGPT-style conversation history, grouped by session, with per-conversation delete
 - **Secure authentication** — JWT-based login/register with hashed passwords
 - **Safety-hardened prompts** — tested against prompt injection, hallucinated advice, contradictory numeric guidance, and off-topic requests
-- **Voice input** *(Beta)* — hands-free question input via the Web Speech API
+- **Multi-turn conversational memory** — coaches reference earlier turns within the same conversation, with a synonym-aware safety check that flags contradicted recommendations (e.g., an aliased exercise name slipping past a stated injury constraint)- **Voice input** *(Beta)* — hands-free question input via the Web Speech API
 - **Conversation export** — download any chat thread as a `.txt` file
 - **Responsive UI** — usable on both desktop and mobile
 
@@ -70,7 +70,7 @@ Saved to Chat History (PostgreSQL)
 ```
 
 - Each coach's knowledge base is embedded and tagged with `coach_type` metadata at ingestion time, so retrieval is filtered per-coach — the Bodybuilding coach only ever searches bodybuilding content, and so on.
-
+- For ongoing conversations, the last few turns are woven into the prompt as conversational context, alongside a lightweight extraction step that identifies any previously flagged exercises (e.g., due to a stated injury) and enforces them as a hard constraint on the current response.
 ## Project Structure
 
 ```text
@@ -164,7 +164,7 @@ Create `backend/.env` with the following:
 ## Known Limitations
 
 - **Voice input (Beta)**: uses the browser's native Web Speech API, which streams audio to the browser vendor's speech recognition service. Reliability varies significantly by browser — verified working via Windows' native dictation, but transcription can fail in Brave (network-blocked by privacy shields) and inconsistently in Edge. This is a browser/platform limitation, not an application bug.
-- **No multi-turn memory within a single answer**: each response is generated independently based on retrieved context and profile, without carrying forward earlier turns in the same conversation into the prompt.
+- **Conversation memory's safety check uses exact and synonym-based matching, not full semantic understanding**: the system maintains a small synonym map (e.g., "Military Press" and "Shoulder Press" both resolve to "Overhead Press") to catch contradicted exercise recommendations across a conversation, but an exercise outside this map that isn't a literal or known-alias match could still slip through undetected.
 - **GPU-independent by design**: embeddings are forced to run on CPU for compatibility across machines with limited VRAM (developed on an RTX 3050, 4GB VRAM).
 
 ## Safety Approach
