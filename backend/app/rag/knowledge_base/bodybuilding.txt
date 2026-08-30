@@ -16,3 +16,13 @@ A mix of compound movements (squat, bench press, deadlift, overhead press, rows)
 
 Rest Periods
 For hypertrophy-focused training, 60-90 seconds of rest between sets is typical, balancing metabolic stress with the ability to maintain training volume across a session.
+
+Injury-Aware Exercise Substitutions
+
+When a user reports a shoulder injury, avoid overhead pressing movements (overhead press, military press, shoulder press) and heavy lateral or rear delt isolation work. Suitable substitutes include chest press variations performed within a pain-free range, seated cable rows, and lower-body compound movements that do not load the shoulder joint.
+
+When a user reports a lower back injury, avoid heavy axial-loading movements such as conventional deadlifts and back squats, and heavy standing overhead presses. Suitable substitutes include leg press, leg extensions, seated or supported row variations, and machine-based exercises that stabilize the spine.
+
+When a user reports a knee injury, avoid deep squats, lunges, and leg extensions under heavy load. Suitable substitutes include upper-body focused training, hip-hinge movements performed within a pain-free range, and low-impact machine work that limits knee flexion under load.
+
+As a general principle, an exercise substitution should preserve the same primary muscle group emphasis as the original movement while removing load or range of motion from the injured joint. Always recommend consulting a physical therapist or medical professional before resuming any excluded movement.
