@@ -20,6 +20,7 @@ from coach_prompts import COACH_PROMPTS
 from auth_dependency import get_current_user
 from profile_routes import router as profile_router
 from progress_routes import router as progress_router
+from workout_plan_routes import router as workout_plan_router
 from database import get_db
 from chat_history import ChatHistory
 
@@ -27,6 +28,7 @@ app = FastAPI(title="AI Personal Trainer Simulator API")
 app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(progress_router)
+app.include_router(workout_plan_router)
 
 # Allow the React frontend (running on a different port) to call this API
 app.add_middleware(
@@ -173,3 +175,5 @@ def get_conversation_messages(conversation_id: str, current_user=Depends(get_cur
         }
         for r in records
     ] 
+
+    

@@ -94,7 +94,7 @@ function ProgressTracker({ token }) {
   }))
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto p-6 gap-6">
+    <div className="flex flex-col overflow-y-auto p-6 gap-6" style={{ maxHeight: '75vh' }}>
       <div>
         <h2 className="font-[Oswald] uppercase tracking-wide text-lg mb-1" style={{ color: ACCENT }}>
           Progress Tracker

@@ -158,6 +158,45 @@ Items to avoid:"""
     result = generate_response(extraction_prompt)
     return result.strip()
 
+def extract_plan_structure(answer_text, coach_type):
+    extraction_prompt = f"""Read the following coaching response. If it contains a multi-day plan (workout days or meal days), extract it into strict JSON with this exact shape, and respond with ONLY the JSON, no other text, no markdown formatting, no code fences:
+{{"days": [{{"label": "Day 1", "items": ["item one", "item two"]}}]}}
+
+Each item should be a short single line (e.g., "Barbell Bench Press: 3 sets of 8-12 reps" or "Grilled chicken breast with quinoa"). If the response does not contain a clear multi-day plan, respond with exactly: NONE
+
+Coaching response:
+{answer_text}
+
+JSON:"""
+
+    result = generate_response(extraction_prompt)
+    result = result.strip()
+
+    if result.upper() == "NONE":
+        return None
+
+    if result.startswith("```"):
+        result = result.strip("`")
+        if result.lower().startswith("json"):
+            result = result[4:]
+        result = result.strip()
+
+    start = result.find("{")
+    end = result.rfind("}")
+    if start == -1 or end == -1 or end < start:
+        return None
+
+    json_text = result[start:end + 1]
+
+    try:
+        import json
+        parsed = json.loads(json_text)
+        if "days" in parsed and isinstance(parsed["days"], list):
+            return parsed
+    except Exception:
+        return None
+
+    return None
 
 def get_rag_response(user_question, coach_type="bodybuilding", k=3, profile=None, conversation_history=None):
     chunks = retrieve_relevant_chunks(user_question, k=k, coach_type=coach_type)
