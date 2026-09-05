@@ -10,6 +10,7 @@ function ChatWindow({ coach, profile, token }) {
   const [loadingHistory, setLoadingHistory] = useState(true)
   const [panelOpen, setPanelOpen] = useState(false)
   const [copiedId, setCopiedId] = useState(null)
+  const [savedPlanId, setSavedPlanId] = useState(null)
   const [conversationId, setConversationId] = useState(null)
   const [conversations, setConversations] = useState([])
   const [isListening, setIsListening] = useState(false)
@@ -111,6 +112,34 @@ function ChatWindow({ coach, profile, token }) {
       console.error('Failed to copy:', err)
     }
   }
+
+  const handleSavePlan = async (content, messageIndex) => {
+    const defaultTitle = `${coach.label} Plan - ${new Date().toLocaleDateString()}`
+    const title = window.prompt('Name this plan:', defaultTitle)
+    if (!title) return
+
+    try {
+      const response = await fetch(`${API_URL}/plans`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          coach_type: coach.id,
+          title,
+          raw_text: content,
+        }),
+      })
+      if (response.ok) {
+        setSavedPlanId(messageIndex)
+        setTimeout(() => setSavedPlanId(null), 1500)
+      }
+    } catch (err) {
+      console.error('Failed to save plan:', err)
+    }
+  }
+
   const handleExport = () => {
     if (messages.length === 0) return
 
@@ -287,17 +316,34 @@ function ChatWindow({ coach, profile, token }) {
                 : 'self-start bg-(--color-bg-elevated)'
             }`}
           >
-            <p className="whitespace-pre-wrap pr-6">{msg.content}</p>
+            <p className="whitespace-pre-wrap pr-14">{msg.content}</p>
             {msg.sources && msg.sources.length > 0 && (
               <p className="text-xs text-(--color-chalk-dim) mt-2 pt-2 border-t border-white/10">
                 Sources: {msg.sources.join(', ')}
               </p>
             )}
-
+            {msg.role === 'assistant' && (
+              <button
+                onClick={() => handleSavePlan(msg.content, i)}
+                className="absolute top-2 right-8 text-(--color-chalk-dim) hover:text-(--color-chalk)"
+                aria-label="Save as plan"
+                title={savedPlanId === i ? 'Saved!' : 'Save as Plan'}
+              >
+                {savedPlanId === i ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                  </svg>
+                )}
+              </button>
+            )}
             {msg.role !== 'error' && (
               <button
                 onClick={() => handleCopy(msg.content, i)}
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-(--color-chalk-dim) hover:text-(--color-chalk)"
+                className="absolute top-2 right-2 text-(--color-chalk-dim) hover:text-(--color-chalk)"
                 aria-label="Copy message"
                 title={copiedId === i ? 'Copied!' : 'Copy'}
               >

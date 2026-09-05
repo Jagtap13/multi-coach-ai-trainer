@@ -174,6 +174,4 @@ def get_conversation_messages(conversation_id: str, current_user=Depends(get_cur
             "created_at": r.created_at.isoformat(),
         }
         for r in records
-    ] 
-
-    
+    ]
