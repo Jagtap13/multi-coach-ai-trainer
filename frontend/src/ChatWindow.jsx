@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import HistoryPanel from './HistoryPanel'
+import PromptModal from './PromptModal'
 
 const API_URL = 'http://127.0.0.1:8000'
 
@@ -14,6 +15,7 @@ function ChatWindow({ coach, profile, token }) {
   const [conversationId, setConversationId] = useState(null)
   const [conversations, setConversations] = useState([])
   const [isListening, setIsListening] = useState(false)
+  const [modalConfig, setModalConfig] = useState(null)
 
   const recognitionRef = useRef(null)
   const bottomRef = useRef(null)
@@ -113,11 +115,7 @@ function ChatWindow({ coach, profile, token }) {
     }
   }
 
-  const handleSavePlan = async (content, messageIndex) => {
-    const defaultTitle = `${coach.label} Plan - ${new Date().toLocaleDateString()}`
-    const title = window.prompt('Name this plan:', defaultTitle)
-    if (!title) return
-
+  const doSavePlan = async (title, content) => {
     try {
       const response = await fetch(`${API_URL}/plans`, {
         method: 'POST',
@@ -132,12 +130,30 @@ function ChatWindow({ coach, profile, token }) {
         }),
       })
       if (response.ok) {
-        setSavedPlanId(messageIndex)
-        setTimeout(() => setSavedPlanId(null), 1500)
+        return true
       }
     } catch (err) {
       console.error('Failed to save plan:', err)
     }
+    return false
+  }
+
+  const handleSavePlan = (content, messageIndex) => {
+    const defaultTitle = `${coach.label} Plan - ${new Date().toLocaleDateString()}`
+    setModalConfig({
+      mode: 'prompt',
+      title: 'Name this plan',
+      defaultValue: defaultTitle,
+      confirmLabel: 'Save',
+      accentColor: coach.accent,
+      onConfirm: async (title) => {
+        const success = await doSavePlan(title, content)
+        if (success) {
+          setSavedPlanId(messageIndex)
+          setTimeout(() => setSavedPlanId(null), 1500)
+        }
+      },
+    })
   }
 
   const handleExport = () => {
@@ -197,10 +213,7 @@ function ChatWindow({ coach, profile, token }) {
     }
   }
 
-  const handleDeleteConversation = async (convId) => {
-    const confirmed = window.confirm('Delete this conversation? This cannot be undone.')
-    if (!confirmed) return
-
+  const doDeleteConversation = async (convId) => {
     try {
       const response = await fetch(`${API_URL}/chat/history?conversation_id=${convId}`, {
         method: 'DELETE',
@@ -217,6 +230,18 @@ function ChatWindow({ coach, profile, token }) {
       console.error('Failed to delete conversation:', err)
     }
   }
+
+  const handleDeleteConversation = (convId) => {
+    setModalConfig({
+      mode: 'confirm',
+      title: 'Delete this conversation?',
+      message: 'This cannot be undone.',
+      confirmLabel: 'Delete',
+      accentColor: '#C0503D',
+      onConfirm: () => doDeleteConversation(convId),
+    })
+  }
+
   const handleVoiceInput = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
 
@@ -242,9 +267,7 @@ function ChatWindow({ coach, profile, token }) {
       setIsListening(false)
     }
     recognition.onresult = (event) => {
-      console.log('Speech recognition result event:', event)
       const transcript = event.results[0][0].transcript
-      console.log('Transcript:', transcript)
       setInput((prev) => (prev ? `${prev} ${transcript}` : transcript))
     }
     recognitionRef.current = recognition
@@ -383,7 +406,7 @@ function ChatWindow({ coach, profile, token }) {
         )}
         <div ref={bottomRef} />
       </div>
-      <div>  
+      <div>
       <div className="border-t border-white/10 p-4 flex gap-3">
         <textarea
           value={input}
@@ -393,7 +416,7 @@ function ChatWindow({ coach, profile, token }) {
           rows={1}
           className="flex-1 bg-(--color-bg-elevated) rounded-md px-4 py-3 text-sm resize-none outline-none placeholder:text-(--color-chalk-dim)"
         />
-                <div className="relative">
+        <div className="relative">
           <button
             onClick={handleVoiceInput}
             className={`px-4 py-2 rounded-md transition-all ${
@@ -435,6 +458,20 @@ function ChatWindow({ coach, profile, token }) {
         onSelect={loadConversation}
         onDelete={handleDeleteConversation}
         coachLabel={coach.label}
+      />
+      <PromptModal
+        isOpen={!!modalConfig}
+        mode={modalConfig?.mode}
+        title={modalConfig?.title}
+        message={modalConfig?.message}
+        defaultValue={modalConfig?.defaultValue}
+        confirmLabel={modalConfig?.confirmLabel}
+        accentColor={modalConfig?.accentColor}
+        onCancel={() => setModalConfig(null)}
+        onConfirm={(val) => {
+          modalConfig.onConfirm(val)
+          setModalConfig(null)
+        }}
       />
     </div>
   )
