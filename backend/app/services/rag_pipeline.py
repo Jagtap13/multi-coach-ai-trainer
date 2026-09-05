@@ -1,4 +1,3 @@
-import re
 import sys
 import os
 
@@ -21,9 +20,12 @@ EXERCISE_SYNONYMS = {
     "overhead press": ["overhead press", "military press", "shoulder press", "push press", "standing press"],
     "lateral raises": ["lateral raises", "lateral raise", "side raises", "side lateral raise"],
     "rear delt fly": ["rear delt fly", "rear delt flys", "rear delt flies", "reverse fly", "reverse flys"],
-    "squat": ["squat", "squats", "back squat", "front squat"],
+    "squat": ["squat", "squats", "back squat", "front squat", "box squat"],
     "deadlift": ["deadlift", "deadlifts", "conventional deadlift", "sumo deadlift"],
     "running": ["running", "jogging", "sprinting", "treadmill running"],
+    "lunge": ["lunge", "lunges", "walking lunge", "bulgarian split squat"],
+    "good morning": ["good morning", "good mornings"],
+    "bent-over row": ["bent-over row", "bent-over rows", "barbell row", "barbell rows"],
 }
 
 FOOD_SYNONYMS = {
@@ -35,26 +37,17 @@ FOOD_SYNONYMS = {
     "soy": ["soy", "soybean", "tofu", "soy sauce"],
 }
 
-def get_synonym_map(coach_type):
-    return FOOD_SYNONYMS if coach_type == "nutrition" else EXERCISE_SYNONYMS
-
-SAFE_CONTEXT_MARKERS = [
-    "avoid", "without", "free", "non-dairy", "dairy-free", "gluten-free",
-    "allerg", "intoleran", "instead of", "substitute", "alternative",
-    "not include", "excluding", "rather than",
-]
-
-SAFE_QUALIFIER_PHRASES = {
-    "milk": ["almond milk", "coconut milk", "soy milk", "oat milk", "rice milk", "cashew milk", "pea milk", "hemp milk"],
-    "yogurt": ["coconut yogurt", "soy yogurt", "almond yogurt", "cashew yogurt"],
-    "cheese": ["cashew cheese", "almond cheese", "vegan cheese", "dairy-free cheese"],
+INJURY_RISK_EXERCISES = {
+    "knee": ["squat", "squats", "lunge", "lunges", "box jump", "box jumps", "jumping", "running"],
+    "shoulder": ["overhead press", "lateral raise", "lateral raises", "rear delt fly", "push press"],
+    "lower back": ["deadlift", "deadlifts", "good morning", "good mornings", "bent-over row", "bent-over rows"],
+    "hip": ["squat", "squats", "lunge", "lunges", "deadlift", "deadlifts"],
+    "wrist": ["push-up", "push-ups", "bench press", "front squat"],
+    "ankle": ["running", "jumping", "box jump", "box jumps", "lunge", "lunges"],
 }
 
-def sentence_has_real_match(sentence_lower, alias):
-    cleaned = sentence_lower
-    for phrase in SAFE_QUALIFIER_PHRASES.get(alias, []):
-        cleaned = cleaned.replace(phrase, "")
-    return alias in cleaned
+def get_synonym_map(coach_type):
+    return FOOD_SYNONYMS if coach_type == "nutrition" else EXERCISE_SYNONYMS
 
 def build_prompt(user_question, retrieved_chunks, coach_type, profile=None, conversation_history=None, avoided_items=None):
     context = "\n\n".join([chunk.page_content for chunk in retrieved_chunks])
@@ -115,23 +108,10 @@ def check_for_avoided_items(answer, avoided_items, coach_type):
         return answer
 
     item_list = [e.strip() for e in avoided_items.split(",") if e.strip()]
-    sentences = re.split(r'(?<=[.!?])\s+', answer)
     found = []
-
     for item in item_list:
         aliases = expand_with_synonyms(item, coach_type)
-        item_found = False
-        for sentence in sentences:
-            sentence_lower = sentence.lower()
-            for alias in aliases:
-                if alias in sentence_lower and sentence_has_real_match(sentence_lower, alias):
-                    has_safe_context = any(marker in sentence_lower for marker in SAFE_CONTEXT_MARKERS)
-                    if not has_safe_context:
-                        item_found = True
-                        break
-            if item_found:
-                break
-        if item_found:
+        if any(alias in answer.lower() for alias in aliases):
             found.append(item)
 
     if found:
@@ -198,10 +178,49 @@ JSON:"""
 
     return None
 
+def extract_injury_context(conversation_history):
+    if not conversation_history:
+        return None
+
+    history_text = "\n".join(
+        [f"User: {t['question']}\nCoach: {t['answer']}" for t in conversation_history]
+    )
+    extraction_prompt = f"""Read the following coaching conversation. Identify if the user mentioned an injury or physical limitation tied to a specific body part or joint. Respond with exactly ONE of these words and nothing else: knee, shoulder, lower back, hip, wrist, ankle, none
+
+Conversation:
+{history_text}
+
+Body part:"""
+
+    result = generate_response(extraction_prompt).strip().lower()
+    for key in INJURY_RISK_EXERCISES:
+        if key in result:
+            return key
+    return None
+
+def merge_avoided_with_injury_risk(avoided_items, injury_key):
+    risk_list = INJURY_RISK_EXERCISES.get(injury_key, [])
+    existing = []
+    if avoided_items and avoided_items.lower() != "none":
+        existing = [e.strip() for e in avoided_items.split(",") if e.strip()]
+
+    combined = existing[:]
+    existing_lower = [e.lower() for e in existing]
+    for risk_item in risk_list:
+        if risk_item.lower() not in existing_lower:
+            combined.append(risk_item.title())
+
+    return ", ".join(combined) if combined else None
+
 def get_rag_response(user_question, coach_type="bodybuilding", k=3, profile=None, conversation_history=None):
     chunks = retrieve_relevant_chunks(user_question, k=k, coach_type=coach_type)
 
     avoided_items = extract_avoided_items(conversation_history, coach_type)
+
+    if coach_type in ("bodybuilding", "powerlifting", "fatloss"):
+        injury_key = extract_injury_context(conversation_history)
+        if injury_key:
+            avoided_items = merge_avoided_with_injury_risk(avoided_items, injury_key)
 
     prompt = build_prompt(user_question, chunks, coach_type=coach_type, profile=profile, conversation_history=conversation_history, avoided_items=avoided_items)
     answer = generate_response(prompt)
