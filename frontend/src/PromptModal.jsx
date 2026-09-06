@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-function PromptModal({ isOpen, mode = 'confirm', title, message, defaultValue = '', confirmLabel = 'Confirm', accentColor = '#C0503D', onConfirm, onCancel }) {
+function PromptModal({ isOpen, mode = 'confirm', title, message, defaultValue = '', confirmLabel = 'Confirm', accentColor = '#C0503D', choices = [], onConfirm, onCancel }) {
   const [value, setValue] = useState(defaultValue)
 
   useEffect(() => {
@@ -31,7 +31,7 @@ function PromptModal({ isOpen, mode = 'confirm', title, message, defaultValue = 
         {message && (
           <p className="text-sm text-(--color-chalk-dim) mb-4">{message}</p>
         )}
-        {mode === 'prompt' && (
+                {mode === 'prompt' && (
           <input
             type="text"
             value={value}
@@ -41,21 +41,42 @@ function PromptModal({ isOpen, mode = 'confirm', title, message, defaultValue = 
             className="w-full bg-black/20 rounded-md px-3 py-2 text-sm outline-none mb-4"
           />
         )}
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={onCancel}
-            className="text-xs uppercase tracking-wide px-4 py-2 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleConfirm}
-            className="text-xs uppercase tracking-wide px-4 py-2 rounded-md font-medium transition-opacity"
-            style={{ backgroundColor: accentColor, color: '#1C1D1F' }}
-          >
-            {confirmLabel}
-          </button>
-        </div>
+        {mode === 'choices' && (
+          <div className="flex flex-col gap-2 mb-2">
+            {choices.map((choice) => (
+              <button
+                key={choice.value}
+                onClick={() => onConfirm(choice.value)}
+                className="text-left text-sm px-3 py-2 rounded-md border border-white/10 hover:border-white/30 transition-all"
+              >
+                {choice.label}
+              </button>
+            ))}
+            <button
+              onClick={() => onConfirm(null)}
+              className="text-left text-xs px-3 py-2 text-(--color-chalk-dim) hover:text-(--color-chalk) transition-colors"
+            >
+              Skip
+            </button>
+          </div>
+        )}
+        {mode !== 'choices' && (
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={onCancel}
+              className="text-xs uppercase tracking-wide px-4 py-2 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirm}
+              className="text-xs uppercase tracking-wide px-4 py-2 rounded-md font-medium transition-opacity"
+              style={{ backgroundColor: accentColor, color: '#1C1D1F' }}
+            >
+              {confirmLabel}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

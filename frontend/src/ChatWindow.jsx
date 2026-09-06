@@ -1,68 +1,71 @@
-import { useState, useEffect, useRef } from 'react'
-import HistoryPanel from './HistoryPanel'
-import PromptModal from './PromptModal'
+import { useState, useEffect, useRef } from "react";
+import HistoryPanel from "./HistoryPanel";
+import PromptModal from "./PromptModal";
 
-const API_URL = 'http://127.0.0.1:8000'
+const API_URL = "http://127.0.0.1:8000";
 
 function ChatWindow({ coach, profile, token }) {
-  const [messages, setMessages] = useState([])
-  const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [loadingHistory, setLoadingHistory] = useState(true)
-  const [panelOpen, setPanelOpen] = useState(false)
-  const [copiedId, setCopiedId] = useState(null)
-  const [savedPlanId, setSavedPlanId] = useState(null)
-  const [feedbackGiven, setFeedbackGiven] = useState({})
-  const [conversationId, setConversationId] = useState(null)
-  const [conversations, setConversations] = useState([])
-  const [isListening, setIsListening] = useState(false)
-  const [modalConfig, setModalConfig] = useState(null)
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [copiedId, setCopiedId] = useState(null);
+  const [savedPlanId, setSavedPlanId] = useState(null);
+  const [feedbackGiven, setFeedbackGiven] = useState({});
+  const [conversationId, setConversationId] = useState(null);
+  const [conversations, setConversations] = useState([]);
+  const [isListening, setIsListening] = useState(false);
+  const [modalConfig, setModalConfig] = useState(null);
 
-  const recognitionRef = useRef(null)
-  const bottomRef = useRef(null)
+  const recognitionRef = useRef(null);
+  const bottomRef = useRef(null);
 
   useEffect(() => {
     const loadConversations = async () => {
-      setLoadingHistory(true)
+      setLoadingHistory(true);
       try {
-        const response = await fetch(`${API_URL}/chat/conversations?coach_type=${coach.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        const response = await fetch(
+          `${API_URL}/chat/conversations?coach_type=${coach.id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
         if (response.ok) {
-          const data = await response.json()
-          setConversations(data)
+          const data = await response.json();
+          setConversations(data);
         }
       } catch (err) {
-        console.error('Failed to load conversations:', err)
+        console.error("Failed to load conversations:", err);
       } finally {
-        setLoadingHistory(false)
+        setLoadingHistory(false);
       }
-    }
+    };
 
-    setMessages([])
-    setConversationId(null)
-    if (token) loadConversations()
-  }, [coach.id, token])
+    setMessages([]);
+    setConversationId(null);
+    if (token) loadConversations();
+  }, [coach.id, token]);
 
   useEffect(() => {
     if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+      bottomRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
-  }, [messages, loading])
+  }, [messages, loading]);
 
   const sendMessage = async () => {
-    if (!input.trim() || loading) return
+    if (!input.trim() || loading) return;
 
-    const userMessage = { role: 'user', content: input }
-    setMessages((prev) => [...prev, userMessage])
-    setInput('')
-    setLoading(true)
+    const userMessage = { role: "user", content: input };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setLoading(true);
 
     try {
       const response = await fetch(`${API_URL}/chat`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
@@ -77,51 +80,56 @@ function ChatWindow({ coach, profile, token }) {
             gender: profile.gender || null,
           },
         }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}`)
+        throw new Error(`Server responded with ${response.status}`);
       }
 
-      const data = await response.json()
-      setConversationId(data.conversation_id)
+      const data = await response.json();
+      setConversationId(data.conversation_id);
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: data.answer, sources: data.sources, messageId: data.message_id },
-      ])
+        {
+          role: "assistant",
+          content: data.answer,
+          sources: data.sources,
+          messageId: data.message_id,
+        },
+      ]);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
-        { role: 'error', content: `Something went wrong: ${err.message}` },
-      ])
+        { role: "error", content: `Something went wrong: ${err.message}` },
+      ]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage()
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
     }
-  }
+  };
 
   const handleCopy = async (content, messageIndex) => {
     try {
-      await navigator.clipboard.writeText(content)
-      setCopiedId(messageIndex)
-      setTimeout(() => setCopiedId(null), 1500)
+      await navigator.clipboard.writeText(content);
+      setCopiedId(messageIndex);
+      setTimeout(() => setCopiedId(null), 1500);
     } catch (err) {
-      console.error('Failed to copy:', err)
+      console.error("Failed to copy:", err);
     }
-  }
+  };
 
   const doSavePlan = async (title, content) => {
     try {
       const response = await fetch(`${API_URL}/plans`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
@@ -129,170 +137,207 @@ function ChatWindow({ coach, profile, token }) {
           title,
           raw_text: content,
         }),
-      })
+      });
       if (response.ok) {
-        return true
+        return true;
       }
     } catch (err) {
-      console.error('Failed to save plan:', err)
+      console.error("Failed to save plan:", err);
     }
-    return false
-  }
+    return false;
+  };
 
-    const handleFeedback = async (messageId, rating) => {
-    if (!messageId) return
+  const submitFeedback = async (messageId, rating, reason = null) => {
     try {
       const response = await fetch(`${API_URL}/feedback`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ chat_history_id: messageId, rating }),
-      })
+        body: JSON.stringify({ chat_history_id: messageId, rating, reason }),
+      });
       if (response.ok) {
-        setFeedbackGiven((prev) => ({ ...prev, [messageId]: rating }))
+        setFeedbackGiven((prev) => ({ ...prev, [messageId]: rating }));
       }
     } catch (err) {
-      console.error('Failed to submit feedback:', err)
+      console.error("Failed to submit feedback:", err);
     }
-  }
+  };
+
+  const handleFeedback = (messageId, rating) => {
+    if (!messageId) return;
+
+    if (rating === "up") {
+      submitFeedback(messageId, "up");
+      return;
+    }
+
+    setModalConfig({
+      mode: "choices",
+      title: "What was wrong with this answer?",
+      choices: [
+        { value: "inaccurate", label: "Inaccurate" },
+        { value: "unsafe", label: "Unsafe advice" },
+        { value: "off_topic", label: "Off-topic" },
+        { value: "too_generic", label: "Too generic" },
+      ],
+      onConfirm: (reason) => submitFeedback(messageId, "down", reason),
+    });
+  };
 
   const handleSavePlan = (content, messageIndex) => {
-    const defaultTitle = `${coach.label} Plan - ${new Date().toLocaleDateString()}`
+    const defaultTitle = `${coach.label} Plan - ${new Date().toLocaleDateString()}`;
     setModalConfig({
-      mode: 'prompt',
-      title: 'Name this plan',
+      mode: "prompt",
+      title: "Name this plan",
       defaultValue: defaultTitle,
-      confirmLabel: 'Save',
+      confirmLabel: "Save",
       accentColor: coach.accent,
       onConfirm: async (title) => {
-        const success = await doSavePlan(title, content)
+        const success = await doSavePlan(title, content);
         if (success) {
-          setSavedPlanId(messageIndex)
-          setTimeout(() => setSavedPlanId(null), 1500)
+          setSavedPlanId(messageIndex);
+          setTimeout(() => setSavedPlanId(null), 1500);
         }
       },
-    })
-  }
+    });
+  };
 
   const handleExport = () => {
-    if (messages.length === 0) return
+    if (messages.length === 0) return;
 
-    const lines = [`${coach.label} Coach — Conversation Export`, `Exported: ${new Date().toLocaleString()}`, '']
+    const lines = [
+      `${coach.label} Coach — Conversation Export`,
+      `Exported: ${new Date().toLocaleString()}`,
+      "",
+    ];
 
     messages.forEach((msg) => {
-      if (msg.role === 'user') {
-        lines.push(`You: ${msg.content}`)
-      } else if (msg.role === 'assistant') {
-        lines.push(`${coach.label} Coach: ${msg.content}`)
+      if (msg.role === "user") {
+        lines.push(`You: ${msg.content}`);
+      } else if (msg.role === "assistant") {
+        lines.push(`${coach.label} Coach: ${msg.content}`);
         if (msg.sources && msg.sources.length > 0) {
-          lines.push(`(Sources: ${msg.sources.join(', ')})`)
+          lines.push(`(Sources: ${msg.sources.join(", ")})`);
         }
       }
-      lines.push('')
-    })
+      lines.push("");
+    });
 
-    const text = lines.join('\n')
-    const blob = new Blob([text], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
+    const text = lines.join("\n");
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
 
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `${coach.id}-conversation-${new Date().toISOString().slice(0, 10)}.txt`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-  }
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${coach.id}-conversation-${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
   const handleNewChat = () => {
-    setMessages([])
-    setConversationId(null)
-  }
+    setMessages([]);
+    setConversationId(null);
+  };
 
   const loadConversation = async (convId) => {
-    setLoadingHistory(true)
+    setLoadingHistory(true);
     try {
       const response = await fetch(`${API_URL}/chat/conversations/${convId}`, {
         headers: { Authorization: `Bearer ${token}` },
-      })
+      });
       if (response.ok) {
-        const data = await response.json()
-                const loadedMessages = data.flatMap((entry) => [
-          { role: 'user', content: entry.question },
-          { role: 'assistant', content: entry.answer, sources: entry.sources, messageId: entry.id },
-        ])
-        setMessages(loadedMessages)
-        setConversationId(convId)
+        const data = await response.json();
+        const loadedMessages = data.flatMap((entry) => [
+          { role: "user", content: entry.question },
+          {
+            role: "assistant",
+            content: entry.answer,
+            sources: entry.sources,
+            messageId: entry.id,
+          },
+        ]);
+        setMessages(loadedMessages);
+        setConversationId(convId);
       }
     } catch (err) {
-      console.error('Failed to load conversation:', err)
+      console.error("Failed to load conversation:", err);
     } finally {
-      setLoadingHistory(false)
-      setPanelOpen(false)
+      setLoadingHistory(false);
+      setPanelOpen(false);
     }
-  }
+  };
 
   const doDeleteConversation = async (convId) => {
     try {
-      const response = await fetch(`${API_URL}/chat/history?conversation_id=${convId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const response = await fetch(
+        `${API_URL}/chat/history?conversation_id=${convId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       if (response.ok) {
-        setConversations((prev) => prev.filter((c) => c.conversation_id !== convId))
+        setConversations((prev) =>
+          prev.filter((c) => c.conversation_id !== convId),
+        );
         if (conversationId === convId) {
-          setMessages([])
-          setConversationId(null)
+          setMessages([]);
+          setConversationId(null);
         }
       }
     } catch (err) {
-      console.error('Failed to delete conversation:', err)
+      console.error("Failed to delete conversation:", err);
     }
-  }
+  };
 
   const handleDeleteConversation = (convId) => {
     setModalConfig({
-      mode: 'confirm',
-      title: 'Delete this conversation?',
-      message: 'This cannot be undone.',
-      confirmLabel: 'Delete',
-      accentColor: '#C0503D',
+      mode: "confirm",
+      title: "Delete this conversation?",
+      message: "This cannot be undone.",
+      confirmLabel: "Delete",
+      accentColor: "#C0503D",
       onConfirm: () => doDeleteConversation(convId),
-    })
-  }
+    });
+  };
 
   const handleVoiceInput = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert('Voice input is not supported in this browser. Try Chrome or Edge.')
-      return
+      alert(
+        "Voice input is not supported in this browser. Try Chrome or Edge.",
+      );
+      return;
     }
 
     if (isListening) {
-      recognitionRef.current?.stop()
-      return
+      recognitionRef.current?.stop();
+      return;
     }
 
-    const recognition = new SpeechRecognition()
-    recognition.continuous = false
-    recognition.interimResults = false
-    recognition.lang = 'en-US'
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
 
-    recognition.onstart = () => setIsListening(true)
-    recognition.onend = () => setIsListening(false)
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
     recognition.onerror = (event) => {
-      console.error('Speech recognition error:', event.error)
-      setIsListening(false)
-    }
+      console.error("Speech recognition error:", event.error);
+      setIsListening(false);
+    };
     recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript
-      setInput((prev) => (prev ? `${prev} ${transcript}` : transcript))
-    }
-    recognitionRef.current = recognition
-    recognition.start()
-  }
+      const transcript = event.results[0][0].transcript;
+      setInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+    };
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
 
   return (
     <div className="relative flex flex-col h-full">
@@ -301,7 +346,7 @@ function ChatWindow({ coach, profile, token }) {
           <button
             onClick={handleNewChat}
             className="text-xs uppercase tracking-wide px-3 py-1.5 rounded-md font-medium transition-opacity"
-            style={{ backgroundColor: coach.accent, color: '#1C1D1F' }}
+            style={{ backgroundColor: coach.accent, color: "#1C1D1F" }}
           >
             + New Chat
           </button>
@@ -324,7 +369,9 @@ function ChatWindow({ coach, profile, token }) {
         </div>
 
         {loadingHistory && (
-          <p className="text-(--color-chalk-dim) text-sm m-auto">Loading conversation...</p>
+          <p className="text-(--color-chalk-dim) text-sm m-auto">
+            Loading conversation...
+          </p>
         )}
 
         {!loadingHistory && messages.length === 0 && (
@@ -351,82 +398,134 @@ function ChatWindow({ coach, profile, token }) {
         {messages.map((msg, i) => (
           <div
             key={i}
-            className={`group relative max-w-[80%] px-4 py-3 rounded-md text-sm transition-all ${msg.role === 'user'
-                ? 'self-end bg-white/10'
-                : msg.role === 'error'
-                  ? 'self-start bg-red-900/30 text-red-300'
-                  : 'self-start bg-(--color-bg-elevated)'
+            className={`group relative max-w-[80%] px-4 py-3 rounded-md text-sm transition-all ${msg.role === "user"
+                ? "self-end bg-white/10"
+                : msg.role === "error"
+                  ? "self-start bg-red-900/30 text-red-300"
+                  : "self-start bg-(--color-bg-elevated)"
               }`}
           >
-                        <p className="whitespace-pre-wrap pr-14">{msg.content}</p>
+            <p className="whitespace-pre-wrap pr-14">{msg.content}</p>
             {msg.sources && msg.sources.length > 0 && (
               <p className="text-xs text-(--color-chalk-dim) mt-2 pt-2 border-t border-white/10">
-                Sources: {msg.sources.join(', ')}
+                Sources: {msg.sources.join(", ")}
               </p>
             )}
-            {msg.role === 'assistant' && msg.messageId && (
+            {msg.role === "assistant" && msg.messageId && (
               <div className="flex items-center gap-2 mt-2">
                 <button
                   onClick={() => handleFeedback(msg.messageId, 'up')}
-                  className={`transition-colors ${
-                    feedbackGiven[msg.messageId] === 'up'
-                      ? 'text-green-400'
-                      : 'text-(--color-chalk-dim) hover:text-(--color-chalk)'
-                  }`}
+                  className={`transition-colors ${feedbackGiven[msg.messageId] === "up"
+                      ? "text-green-400"
+                      : "text-(--color-chalk-dim) hover:text-(--color-chalk)"
+                    }`}
                   aria-label="Good response"
                   title="Good response"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
                   </svg>
                 </button>
                 <button
-                  onClick={() => handleFeedback(msg.messageId, 'down')}
-                  className={`transition-colors ${
-                    feedbackGiven[msg.messageId] === 'down'
-                      ? 'text-red-400'
-                      : 'text-(--color-chalk-dim) hover:text-(--color-chalk)'
-                  }`}
+                  onClick={() => handleFeedback(msg.messageId, "down")}
+                  className={`transition-colors ${feedbackGiven[msg.messageId] === "down"
+                      ? "text-red-400"
+                      : "text-(--color-chalk-dim) hover:text-(--color-chalk)"
+                    }`}
                   aria-label="Poor response"
                   title="Poor response"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3" />
                   </svg>
                 </button>
               </div>
             )}
-            {msg.role === 'assistant' && (
+            {msg.role === "assistant" && (
               <button
                 onClick={() => handleSavePlan(msg.content, i)}
                 className="absolute top-2 right-8 text-(--color-chalk-dim) hover:text-(--color-chalk)"
                 aria-label="Save as plan"
-                title={savedPlanId === i ? 'Saved!' : 'Save as Plan'}
+                title={savedPlanId === i ? "Saved!" : "Save as Plan"}
               >
                 {savedPlanId === i ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                   </svg>
                 )}
               </button>
             )}
-            {msg.role !== 'error' && (
+            {msg.role !== "error" && (
               <button
                 onClick={() => handleCopy(msg.content, i)}
                 className="absolute top-2 right-2 text-(--color-chalk-dim) hover:text-(--color-chalk)"
                 aria-label="Copy message"
-                title={copiedId === i ? 'Copied!' : 'Copy'}
+                title={copiedId === i ? "Copied!" : "Copy"}
               >
                 {copiedId === i ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                   </svg>
@@ -438,7 +537,9 @@ function ChatWindow({ coach, profile, token }) {
 
         {loading && (
           <div className="self-start bg-(--color-bg-elevated) px-4 py-3 rounded-md flex items-center gap-3">
-            <span className="text-sm text-(--color-chalk-dim)">{coach.label} Coach is typing</span>
+            <span className="text-sm text-(--color-chalk-dim)">
+              {coach.label} Coach is typing
+            </span>
             <span className="flex gap-1">
               <span
                 className="typing-dot w-1.5 h-1.5 rounded-full"
@@ -463,7 +564,9 @@ function ChatWindow({ coach, profile, token }) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={isListening ? 'Listening...' : `Ask the ${coach.label} Coach...`}
+            placeholder={
+              isListening ? "Listening..." : `Ask the ${coach.label} Coach...`
+            }
             rows={1}
             className="flex-1 bg-(--color-bg-elevated) rounded-md px-4 py-3 text-sm resize-none outline-none placeholder:text-(--color-chalk-dim)"
           />
@@ -471,13 +574,26 @@ function ChatWindow({ coach, profile, token }) {
             <button
               onClick={handleVoiceInput}
               className={`px-4 py-2 rounded-md transition-all ${isListening
-                  ? 'bg-red-500/20 text-red-400 animate-pulse'
-                  : 'border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30'
+                  ? "bg-red-500/20 text-red-400 animate-pulse"
+                  : "border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30"
                 }`}
-              aria-label={isListening ? 'Stop listening' : 'Voice input'}
-              title={isListening ? 'Stop listening (Beta — reliability varies by browser)' : 'Voice input (Beta — reliability varies by browser)'}
+              aria-label={isListening ? "Stop listening" : "Voice input"}
+              title={
+                isListening
+                  ? "Stop listening (Beta — reliability varies by browser)"
+                  : "Voice input (Beta — reliability varies by browser)"
+              }
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
                 <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
                 <line x1="12" y1="19" x2="12" y2="23" />
@@ -492,7 +608,7 @@ function ChatWindow({ coach, profile, token }) {
             onClick={sendMessage}
             disabled={loading || !input.trim()}
             className="px-5 py-2 rounded-md text-sm font-medium uppercase tracking-wide disabled:opacity-40 transition-opacity"
-            style={{ backgroundColor: coach.accent, color: '#1C1D1F' }}
+            style={{ backgroundColor: coach.accent, color: "#1C1D1F" }}
           >
             Send
           </button>
@@ -517,14 +633,15 @@ function ChatWindow({ coach, profile, token }) {
         defaultValue={modalConfig?.defaultValue}
         confirmLabel={modalConfig?.confirmLabel}
         accentColor={modalConfig?.accentColor}
+        choices={modalConfig?.choices}
         onCancel={() => setModalConfig(null)}
         onConfirm={(val) => {
-          modalConfig.onConfirm(val)
-          setModalConfig(null)
+          modalConfig.onConfirm(val);
+          setModalConfig(null);
         }}
       />
     </div>
-  )
+  );
 }
 
-export default ChatWindow
+export default ChatWindow;

@@ -18,6 +18,7 @@ router = APIRouter()
 class FeedbackRequest(BaseModel):
     chat_history_id: int
     rating: str
+    reason: str | None = None
 
 @router.post("/feedback")
 def submit_feedback(request: FeedbackRequest, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
@@ -38,18 +39,20 @@ def submit_feedback(request: FeedbackRequest, current_user=Depends(get_current_u
 
     if existing:
         existing.rating = request.rating
+        existing.reason = request.reason
         db.commit()
-        return {"id": existing.id, "rating": existing.rating}
+        return {"id": existing.id, "rating": existing.rating, "reason": existing.reason}
 
     new_feedback = MessageFeedback(
         user_id=current_user.id,
         chat_history_id=request.chat_history_id,
         rating=request.rating,
+        reason=request.reason,
     )
     db.add(new_feedback)
     db.commit()
     db.refresh(new_feedback)
-    return {"id": new_feedback.id, "rating": new_feedback.rating}
+    return {"id": new_feedback.id, "rating": new_feedback.rating, "reason": new_feedback.reason}
 
 @router.get("/feedback/summary")
 def feedback_summary(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
@@ -69,3 +72,31 @@ def feedback_summary(current_user=Depends(get_current_user), db: Session = Depen
         summary[coach_type][rating] += 1
 
     return summary
+
+@router.get("/feedback/downvoted")
+def get_downvoted(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    results = db.query(
+        MessageFeedback.id,
+        MessageFeedback.reason,
+        MessageFeedback.created_at,
+        ChatHistory.coach_type,
+        ChatHistory.question,
+        ChatHistory.answer
+    ).join(
+        ChatHistory, MessageFeedback.chat_history_id == ChatHistory.id
+    ).filter(
+        MessageFeedback.user_id == current_user.id,
+        MessageFeedback.rating == "down"
+    ).order_by(MessageFeedback.created_at.desc()).all()
+
+    return [
+        {
+            "id": r.id,
+            "reason": r.reason,
+            "created_at": r.created_at.isoformat(),
+            "coach_type": r.coach_type,
+            "question": r.question,
+            "answer": r.answer,
+        }
+        for r in results
+    ]
