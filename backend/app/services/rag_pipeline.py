@@ -46,6 +46,15 @@ INJURY_RISK_EXERCISES = {
     "ankle": ["running", "jumping", "box jump", "box jumps", "lunge", "lunges"],
 }
 
+ALLERGY_RISK_FOODS = {
+    "dairy": ["whey protein", "casein", "ghee", "butter", "ice cream", "cottage cheese", "cream cheese"],
+    "peanuts": ["peanut oil", "satay sauce", "peanut flour"],
+    "gluten": ["barley", "rye", "couscous", "seitan", "soy sauce", "malt"],
+    "shellfish": ["oyster sauce", "fish sauce", "shrimp paste"],
+    "eggs": ["mayonnaise", "meringue", "custard", "egg wash"],
+    "soy": ["edamame", "miso", "soy lecithin", "tempeh", "soy sauce"],
+}
+
 def get_synonym_map(coach_type):
     return FOOD_SYNONYMS if coach_type == "nutrition" else EXERCISE_SYNONYMS
 
@@ -198,8 +207,28 @@ Body part:"""
             return key
     return None
 
-def merge_avoided_with_injury_risk(avoided_items, injury_key):
-    risk_list = INJURY_RISK_EXERCISES.get(injury_key, [])
+def extract_allergy_context(conversation_history):
+    if not conversation_history:
+        return None
+
+    history_text = "\n".join(
+        [f"User: {t['question']}\nCoach: {t['answer']}" for t in conversation_history]
+    )
+    extraction_prompt = f"""Read the following coaching conversation. Identify if the user mentioned a food allergy or intolerance tied to one of these categories. Respond with exactly ONE of these words and nothing else: dairy, peanuts, gluten, shellfish, eggs, soy, none
+
+Conversation:
+{history_text}
+
+Category:"""
+
+    result = generate_response(extraction_prompt).strip().lower()
+    for key in ALLERGY_RISK_FOODS:
+        if key in result:
+            return key
+    return None
+
+def merge_avoided_with_risk_map(avoided_items, risk_key, risk_map):
+    risk_list = risk_map.get(risk_key, [])
     existing = []
     if avoided_items and avoided_items.lower() != "none":
         existing = [e.strip() for e in avoided_items.split(",") if e.strip()]
@@ -220,13 +249,16 @@ def get_rag_response(user_question, coach_type="bodybuilding", k=3, profile=None
     if coach_type in ("bodybuilding", "powerlifting", "fatloss"):
         injury_key = extract_injury_context(conversation_history)
         if injury_key:
-            avoided_items = merge_avoided_with_injury_risk(avoided_items, injury_key)
+            avoided_items = merge_avoided_with_risk_map(avoided_items, injury_key, INJURY_RISK_EXERCISES)
+    elif coach_type == "nutrition":
+        allergy_key = extract_allergy_context(conversation_history)
+        if allergy_key:
+            avoided_items = merge_avoided_with_risk_map(avoided_items, allergy_key, ALLERGY_RISK_FOODS)
 
     prompt = build_prompt(user_question, chunks, coach_type=coach_type, profile=profile, conversation_history=conversation_history, avoided_items=avoided_items)
     answer = generate_response(prompt)
     answer = check_for_avoided_items(answer, avoided_items, coach_type)
     return answer, chunks
-
 
 if __name__ == "__main__":
     question = "I have a shoulder injury but I really want to build muscle fast. What should I do?"
