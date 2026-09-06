@@ -16,5 +16,4 @@ class MessageFeedback(Base):
     reason = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-
     __table_args__ = (UniqueConstraint("user_id", "chat_history_id", name="uq_user_message_feedback"),)

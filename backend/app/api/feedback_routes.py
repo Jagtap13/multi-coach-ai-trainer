@@ -15,6 +15,12 @@ from chat_history import ChatHistory
 
 router = APIRouter()
 
+ADMIN_EMAILS = {"test@example.com"}
+
+def require_admin(current_user):
+    if current_user.email not in ADMIN_EMAILS:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
 class FeedbackRequest(BaseModel):
     chat_history_id: int
     rating: str
@@ -56,6 +62,7 @@ def submit_feedback(request: FeedbackRequest, current_user=Depends(get_current_u
 
 @router.get("/feedback/summary")
 def feedback_summary(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    require_admin(current_user)
     results = db.query(
         ChatHistory.coach_type,
         MessageFeedback.rating
@@ -75,6 +82,7 @@ def feedback_summary(current_user=Depends(get_current_user), db: Session = Depen
 
 @router.get("/feedback/downvoted")
 def get_downvoted(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    require_admin(current_user)
     results = db.query(
         MessageFeedback.id,
         MessageFeedback.reason,
@@ -100,3 +108,7 @@ def get_downvoted(current_user=Depends(get_current_user), db: Session = Depends(
         }
         for r in results
     ]
+
+@router.get("/auth/is-admin")
+def check_is_admin(current_user=Depends(get_current_user)):
+    return {"is_admin": current_user.email in ADMIN_EMAILS}

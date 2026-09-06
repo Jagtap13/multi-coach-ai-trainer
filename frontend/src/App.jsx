@@ -4,6 +4,7 @@ import ProfileForm from "./ProfileForm";
 import AuthForm from "./AuthForm";
 import ProgressTracker from "./ProgressTracker";
 import PlanViewer from "./PlanViewer";
+import FeedbackDashboard from "./FeedbackDashboard";
 
 const COACHES = [
   {
@@ -134,6 +135,16 @@ function App() {
         >
           Plans
         </button>
+        <button
+          onClick={() => setView("feedback")}
+          className={`text-xs uppercase tracking-wide px-4 py-2 rounded-md border transition-all ${
+            view === "feedback"
+              ? "border-white/30 bg-white/5"
+              : "border-white/10 text-(--color-chalk-dim) hover:border-white/20"
+          }`}
+        >
+          Feedback
+        </button>
       </div>
 
       {view === "coaches" && (
@@ -192,6 +203,14 @@ function App() {
         <div className="flex-1 max-w-5xl mx-auto w-full px-4 md:px-8 py-4 md:py-8 min-h-0">
           <div className="h-full border border-white/10 rounded-md overflow-hidden">
             <PlanViewer token={token} />
+          </div>
+        </div>
+      )}
+
+      {view === "feedback" && (
+        <div className="flex-1 max-w-5xl mx-auto w-full px-4 md:px-8 py-4 md:py-8 min-h-0">
+          <div className="h-full border border-white/10 rounded-md overflow-hidden">
+            <FeedbackDashboard token={token} />
           </div>
         </div>
       )}
