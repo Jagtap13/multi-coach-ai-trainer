@@ -21,6 +21,7 @@ from auth_dependency import get_current_user
 from profile_routes import router as profile_router
 from progress_routes import router as progress_router
 from workout_plan_routes import router as workout_plan_router
+from feedback_routes import router as feedback_router
 from database import get_db
 from chat_history import ChatHistory
 
@@ -29,6 +30,7 @@ app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(progress_router)
 app.include_router(workout_plan_router)
+app.include_router(feedback_router)
 
 # Allow the React frontend (running on a different port) to call this API
 app.add_middleware(
@@ -57,6 +59,7 @@ class ChatResponse(BaseModel):
     coach_type: str
     sources: list[str]
     conversation_id: str
+    message_id: int
 
 @app.get("/")
 def root():
@@ -111,7 +114,8 @@ def chat(request: ChatRequest, current_user=Depends(get_current_user), db: Sessi
             answer=answer,
             coach_type=request.coach_type,
             sources=sources,
-            conversation_id=conv_id
+            conversation_id=conv_id,
+            message_id=history_entry.id
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

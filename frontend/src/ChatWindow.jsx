@@ -12,6 +12,7 @@ function ChatWindow({ coach, profile, token }) {
   const [panelOpen, setPanelOpen] = useState(false)
   const [copiedId, setCopiedId] = useState(null)
   const [savedPlanId, setSavedPlanId] = useState(null)
+  const [feedbackGiven, setFeedbackGiven] = useState({})
   const [conversationId, setConversationId] = useState(null)
   const [conversations, setConversations] = useState([])
   const [isListening, setIsListening] = useState(false)
@@ -86,7 +87,7 @@ function ChatWindow({ coach, profile, token }) {
       setConversationId(data.conversation_id)
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: data.answer, sources: data.sources },
+        { role: 'assistant', content: data.answer, sources: data.sources, messageId: data.message_id },
       ])
     } catch (err) {
       setMessages((prev) => [
@@ -136,6 +137,25 @@ function ChatWindow({ coach, profile, token }) {
       console.error('Failed to save plan:', err)
     }
     return false
+  }
+
+    const handleFeedback = async (messageId, rating) => {
+    if (!messageId) return
+    try {
+      const response = await fetch(`${API_URL}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ chat_history_id: messageId, rating }),
+      })
+      if (response.ok) {
+        setFeedbackGiven((prev) => ({ ...prev, [messageId]: rating }))
+      }
+    } catch (err) {
+      console.error('Failed to submit feedback:', err)
+    }
   }
 
   const handleSavePlan = (content, messageIndex) => {
@@ -198,9 +218,9 @@ function ChatWindow({ coach, profile, token }) {
       })
       if (response.ok) {
         const data = await response.json()
-        const loadedMessages = data.flatMap((entry) => [
+                const loadedMessages = data.flatMap((entry) => [
           { role: 'user', content: entry.question },
-          { role: 'assistant', content: entry.answer, sources: entry.sources },
+          { role: 'assistant', content: entry.answer, sources: entry.sources, messageId: entry.id },
         ])
         setMessages(loadedMessages)
         setConversationId(convId)
@@ -331,19 +351,50 @@ function ChatWindow({ coach, profile, token }) {
         {messages.map((msg, i) => (
           <div
             key={i}
-            className={`group relative max-w-[80%] px-4 py-3 rounded-md text-sm transition-all ${
-              msg.role === 'user'
+            className={`group relative max-w-[80%] px-4 py-3 rounded-md text-sm transition-all ${msg.role === 'user'
                 ? 'self-end bg-white/10'
                 : msg.role === 'error'
-                ? 'self-start bg-red-900/30 text-red-300'
-                : 'self-start bg-(--color-bg-elevated)'
-            }`}
+                  ? 'self-start bg-red-900/30 text-red-300'
+                  : 'self-start bg-(--color-bg-elevated)'
+              }`}
           >
-            <p className="whitespace-pre-wrap pr-14">{msg.content}</p>
+                        <p className="whitespace-pre-wrap pr-14">{msg.content}</p>
             {msg.sources && msg.sources.length > 0 && (
               <p className="text-xs text-(--color-chalk-dim) mt-2 pt-2 border-t border-white/10">
                 Sources: {msg.sources.join(', ')}
               </p>
+            )}
+            {msg.role === 'assistant' && msg.messageId && (
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  onClick={() => handleFeedback(msg.messageId, 'up')}
+                  className={`transition-colors ${
+                    feedbackGiven[msg.messageId] === 'up'
+                      ? 'text-green-400'
+                      : 'text-(--color-chalk-dim) hover:text-(--color-chalk)'
+                  }`}
+                  aria-label="Good response"
+                  title="Good response"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => handleFeedback(msg.messageId, 'down')}
+                  className={`transition-colors ${
+                    feedbackGiven[msg.messageId] === 'down'
+                      ? 'text-red-400'
+                      : 'text-(--color-chalk-dim) hover:text-(--color-chalk)'
+                  }`}
+                  aria-label="Poor response"
+                  title="Poor response"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3" />
+                  </svg>
+                </button>
+              </div>
             )}
             {msg.role === 'assistant' && (
               <button
@@ -407,47 +458,46 @@ function ChatWindow({ coach, profile, token }) {
         <div ref={bottomRef} />
       </div>
       <div>
-      <div className="border-t border-white/10 p-4 flex gap-3">
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={isListening ? 'Listening...' : `Ask the ${coach.label} Coach...`}
-          rows={1}
-          className="flex-1 bg-(--color-bg-elevated) rounded-md px-4 py-3 text-sm resize-none outline-none placeholder:text-(--color-chalk-dim)"
-        />
-        <div className="relative">
+        <div className="border-t border-white/10 p-4 flex gap-3">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={isListening ? 'Listening...' : `Ask the ${coach.label} Coach...`}
+            rows={1}
+            className="flex-1 bg-(--color-bg-elevated) rounded-md px-4 py-3 text-sm resize-none outline-none placeholder:text-(--color-chalk-dim)"
+          />
+          <div className="relative">
+            <button
+              onClick={handleVoiceInput}
+              className={`px-4 py-2 rounded-md transition-all ${isListening
+                  ? 'bg-red-500/20 text-red-400 animate-pulse'
+                  : 'border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30'
+                }`}
+              aria-label={isListening ? 'Stop listening' : 'Voice input'}
+              title={isListening ? 'Stop listening (Beta — reliability varies by browser)' : 'Voice input (Beta — reliability varies by browser)'}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="23" />
+                <line x1="8" y1="23" x2="16" y2="23" />
+              </svg>
+            </button>
+            <span className="absolute -top-1.5 -right-1.5 text-[8px] uppercase tracking-wide bg-white/10 text-(--color-chalk-dim) px-1 py-0.5 rounded">
+              Beta
+            </span>
+          </div>
           <button
-            onClick={handleVoiceInput}
-            className={`px-4 py-2 rounded-md transition-all ${
-              isListening
-                ? 'bg-red-500/20 text-red-400 animate-pulse'
-                : 'border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30'
-            }`}
-            aria-label={isListening ? 'Stop listening' : 'Voice input'}
-            title={isListening ? 'Stop listening (Beta — reliability varies by browser)' : 'Voice input (Beta — reliability varies by browser)'}
+            onClick={sendMessage}
+            disabled={loading || !input.trim()}
+            className="px-5 py-2 rounded-md text-sm font-medium uppercase tracking-wide disabled:opacity-40 transition-opacity"
+            style={{ backgroundColor: coach.accent, color: '#1C1D1F' }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-              <line x1="12" y1="19" x2="12" y2="23" />
-              <line x1="8" y1="23" x2="16" y2="23" />
-            </svg>
+            Send
           </button>
-          <span className="absolute -top-1.5 -right-1.5 text-[8px] uppercase tracking-wide bg-white/10 text-(--color-chalk-dim) px-1 py-0.5 rounded">
-            Beta
-          </span>
         </div>
-        <button
-          onClick={sendMessage}
-          disabled={loading || !input.trim()}
-          className="px-5 py-2 rounded-md text-sm font-medium uppercase tracking-wide disabled:opacity-40 transition-opacity"
-          style={{ backgroundColor: coach.accent, color: '#1C1D1F' }}
-        >
-          Send
-        </button>
-      </div>
-      <p className="text-[11px] text-(--color-chalk-dim) mt-1.5 px-1">
+        <p className="text-[11px] text-(--color-chalk-dim) mt-1.5 px-1">
           Enter to send · Shift + Enter for new line
         </p>
       </div>
