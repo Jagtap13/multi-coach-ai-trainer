@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ChatWindow from "./ChatWindow";
 import ProfileForm from "./ProfileForm";
 import AuthForm from "./AuthForm";
 import ProgressTracker from "./ProgressTracker";
 import PlanViewer from "./PlanViewer";
 import FeedbackDashboard from "./FeedbackDashboard";
+import KnowledgeBaseAdmin from "./KnowledgeBaseAdmin";
 
 const COACHES = [
   {
@@ -57,6 +58,7 @@ function App() {
   const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [selectedCoach, setSelectedCoach] = useState("bodybuilding");
   const [view, setView] = useState("coaches");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [profile, setProfile] = useState({
     age: "",
     weight_kg: "",
@@ -65,7 +67,17 @@ function App() {
     gender: "",
   });
 
-  const activeCoach = COACHES.find((c) => c.id === selectedCoach);
+    const activeCoach = COACHES.find((c) => c.id === selectedCoach);
+
+  useEffect(() => {
+    if (!token) return
+    fetch("http://127.0.0.1:8000/auth/is-admin", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => { if (data) setIsAdmin(data.is_admin) })
+      .catch(() => {})
+  }, [token]);
 
   const handleAuthSuccess = (newToken) => {
     localStorage.setItem("token", newToken);
@@ -135,16 +147,30 @@ function App() {
         >
           Plans
         </button>
-        <button
-          onClick={() => setView("feedback")}
-          className={`text-xs uppercase tracking-wide px-4 py-2 rounded-md border transition-all ${
-            view === "feedback"
-              ? "border-white/30 bg-white/5"
-              : "border-white/10 text-(--color-chalk-dim) hover:border-white/20"
-          }`}
-        >
-          Feedback
-        </button>
+                        {isAdmin && (
+          <>
+            <button
+              onClick={() => setView("feedback")}
+              className={`text-xs uppercase tracking-wide px-4 py-2 rounded-md border transition-all ${
+                view === "feedback"
+                  ? "border-white/30 bg-white/5"
+                  : "border-white/10 text-(--color-chalk-dim) hover:border-white/20"
+              }`}
+            >
+              Feedback
+            </button>
+            <button
+              onClick={() => setView("kb-admin")}
+              className={`text-xs uppercase tracking-wide px-4 py-2 rounded-md border transition-all ${
+                view === "kb-admin"
+                  ? "border-white/30 bg-white/5"
+                  : "border-white/10 text-(--color-chalk-dim) hover:border-white/20"
+              }`}
+            >
+              Knowledge Base
+            </button>
+          </>
+        )}
       </div>
 
       {view === "coaches" && (
@@ -211,6 +237,14 @@ function App() {
         <div className="flex-1 max-w-5xl mx-auto w-full px-4 md:px-8 py-4 md:py-8 min-h-0">
           <div className="h-full border border-white/10 rounded-md overflow-hidden">
             <FeedbackDashboard token={token} />
+          </div>
+        </div>
+      )}
+
+            {view === "kb-admin" && (
+        <div className="flex-1 max-w-5xl mx-auto w-full px-4 md:px-8 py-4 md:py-8 min-h-0">
+          <div className="h-full border border-white/10 rounded-md overflow-hidden">
+            <KnowledgeBaseAdmin token={token} />
           </div>
         </div>
       )}
