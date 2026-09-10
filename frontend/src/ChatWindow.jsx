@@ -17,6 +17,7 @@ function ChatWindow({ coach, profile, token }) {
   const [conversations, setConversations] = useState([]);
   const [isListening, setIsListening] = useState(false);
   const [modalConfig, setModalConfig] = useState(null);
+  const [language, setLanguage] = useState('en')
 
   const recognitionRef = useRef(null);
   const bottomRef = useRef(null);
@@ -68,10 +69,11 @@ function ChatWindow({ coach, profile, token }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
+                body: JSON.stringify({
           question: userMessage.content,
           coach_type: coach.id,
           conversation_id: conversationId,
+          language,
           profile: {
             age: profile.age ? parseInt(profile.age) : null,
             weight_kg: profile.weight_kg ? parseFloat(profile.weight_kg) : null,
@@ -558,8 +560,17 @@ function ChatWindow({ coach, profile, token }) {
         )}
         <div ref={bottomRef} />
       </div>
-      <div>
+            <div>
         <div className="border-t border-white/10 p-4 flex gap-3">
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="bg-(--color-bg-elevated) rounded-md px-2 text-xs outline-none border border-white/10 text-(--color-chalk-dim)"
+          >
+            <option value="en">EN</option>
+            <option value="hi">हिं</option>
+            <option value="mr">मर</option>
+          </select>
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}

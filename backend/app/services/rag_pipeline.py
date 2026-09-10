@@ -1,5 +1,6 @@
 import sys
 import os
+from deep_translator import GoogleTranslator
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "rag"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "llm"))
@@ -58,7 +59,13 @@ ALLERGY_RISK_FOODS = {
 def get_synonym_map(coach_type):
     return FOOD_SYNONYMS if coach_type == "nutrition" else EXERCISE_SYNONYMS
 
-def build_prompt(user_question, retrieved_chunks, coach_type, profile=None, conversation_history=None, avoided_items=None):
+LANGUAGE_NAMES = {
+    "en": "English",
+    "hi": "Hindi",
+    "mr": "Marathi",
+}
+
+def build_prompt(user_question, retrieved_chunks, coach_type, profile=None, conversation_history=None, avoided_items=None, language="en"):
     context = "\n\n".join([chunk.page_content for chunk in retrieved_chunks])
     coach_persona = get_coach_prompt(coach_type)
     item_type = COACH_ITEM_TYPE.get(coach_type, "exercise")
@@ -91,6 +98,8 @@ def build_prompt(user_question, retrieved_chunks, coach_type, profile=None, conv
     if avoided_items and avoided_items.lower() != "none":
         avoid_section = f"\n\nHARD CONSTRAINT — DO NOT INCLUDE ANY OF THESE {item_type.upper()}S ANYWHERE IN YOUR ANSWER: {avoided_items}\nBefore finalizing your answer, check everything you plan to include against this list.\n"
 
+    language_section = ""
+    
     prompt = f"""{coach_persona}
     {profile_section}{history_section}
 
@@ -99,7 +108,7 @@ Use the following trusted fitness information to answer the user's question accu
 Context:
 {context}
 
-Question: {user_question}{avoid_section}
+Question: {user_question}{avoid_section}{language_section}
 
 Answer:"""
     return prompt
@@ -241,7 +250,17 @@ def merge_avoided_with_risk_map(avoided_items, risk_key, risk_map):
 
     return ", ".join(combined) if combined else None
 
-def get_rag_response(user_question, coach_type="bodybuilding", k=3, profile=None, conversation_history=None):
+def translate_answer(text, language):
+    if language == "en":
+        return text
+    try:
+        translated = GoogleTranslator(source="en", target=language).translate(text)
+        return translated
+    except Exception as e:
+        print(f"Translation failed, returning English: {e}")
+        return text
+
+def get_rag_response(user_question, coach_type="bodybuilding", k=3, profile=None, conversation_history=None, language="en"):
     chunks = retrieve_relevant_chunks(user_question, k=k, coach_type=coach_type)
 
     avoided_items = extract_avoided_items(conversation_history, coach_type)
@@ -255,9 +274,10 @@ def get_rag_response(user_question, coach_type="bodybuilding", k=3, profile=None
         if allergy_key:
             avoided_items = merge_avoided_with_risk_map(avoided_items, allergy_key, ALLERGY_RISK_FOODS)
 
-    prompt = build_prompt(user_question, chunks, coach_type=coach_type, profile=profile, conversation_history=conversation_history, avoided_items=avoided_items)
+    prompt = build_prompt(user_question, chunks, coach_type=coach_type, profile=profile, conversation_history=conversation_history, avoided_items=avoided_items, language="en")
     answer = generate_response(prompt)
     answer = check_for_avoided_items(answer, avoided_items, coach_type)
+    answer = translate_answer(answer, language)
     return answer, chunks
 
 if __name__ == "__main__":

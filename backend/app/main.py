@@ -55,6 +55,7 @@ class ChatRequest(BaseModel):
     coach_type: str = "bodybuilding"
     profile: UserProfile | None = None
     conversation_id: str | None = None
+    language: str = "en"
 
 class ChatResponse(BaseModel):
     answer: str
@@ -96,8 +97,9 @@ def chat(request: ChatRequest, current_user=Depends(get_current_user), db: Sessi
             request.question,
             coach_type=request.coach_type,
             profile=request.profile.model_dump() if request.profile else None,
-            conversation_history=conversation_history
-        )
+            conversation_history=conversation_history,
+            language=request.language
+    )
         sources = list(set(os.path.basename(c.metadata.get("source", "unknown")) for c in chunks))
         conv_id = request.conversation_id or str(uuid.uuid4())
         # Save to chat history
