@@ -116,7 +116,7 @@ function App() {
         </button>
       </header>
 
-      <div className="flex gap-2 max-w-5xl mx-auto w-full px-4 md:px-8 pt-4 md:pt-8">
+        <div className="flex gap-2 max-w-5xl mx-auto w-full px-4 md:px-8 pt-4 md:pt-8 overflow-x-auto">
         <button
           onClick={() => setView("coaches")}
           className={`text-xs uppercase tracking-wide px-4 py-2 rounded-md border transition-all ${
