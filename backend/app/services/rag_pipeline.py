@@ -1,6 +1,7 @@
 import sys
 import os
 from deep_translator import GoogleTranslator
+import re
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "rag"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "llm"))
@@ -121,15 +122,46 @@ def expand_with_synonyms(item_name, coach_type):
             return aliases
     return [key]
 
+SAFE_CONTEXT_MARKERS = [
+    "avoid", "without", "free", "non-dairy", "dairy-free", "gluten-free",
+    "allerg", "intoleran", "instead of", "substitute", "alternative",
+    "not include", "excluding", "rather than",
+]
+
+SAFE_QUALIFIER_PHRASES = {
+    "milk": ["almond milk", "coconut milk", "soy milk", "oat milk", "rice milk", "cashew milk", "pea milk", "hemp milk"],
+    "yogurt": ["coconut yogurt", "soy yogurt", "almond yogurt", "cashew yogurt"],
+    "cheese": ["cashew cheese", "almond cheese", "vegan cheese", "dairy-free cheese"],
+}
+
+def sentence_has_real_match(sentence_lower, alias):
+    cleaned = sentence_lower
+    for phrase in SAFE_QUALIFIER_PHRASES.get(alias, []):
+        cleaned = cleaned.replace(phrase, "")
+    return alias in cleaned
+
 def check_for_avoided_items(answer, avoided_items, coach_type):
     if not avoided_items or avoided_items.lower() == "none":
         return answer
 
     item_list = [e.strip() for e in avoided_items.split(",") if e.strip()]
+    sentences = re.split(r'(?<=[.!?])\s+', answer)
     found = []
+
     for item in item_list:
         aliases = expand_with_synonyms(item, coach_type)
-        if any(alias in answer.lower() for alias in aliases):
+        item_found = False
+        for sentence in sentences:
+            sentence_lower = sentence.lower()
+            for alias in aliases:
+                if alias in sentence_lower and sentence_has_real_match(sentence_lower, alias):
+                    has_safe_context = any(marker in sentence_lower for marker in SAFE_CONTEXT_MARKERS)
+                    if not has_safe_context:
+                        item_found = True
+                        break
+            if item_found:
+                break
+        if item_found:
             found.append(item)
 
     if found:
