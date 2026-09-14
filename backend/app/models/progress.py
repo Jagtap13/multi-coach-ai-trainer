@@ -14,4 +14,7 @@ class ProgressEntry(Base):
     weight_kg = Column(Float, nullable=False)
     entry_date = Column(Date, nullable=False)
     notes = Column(String, nullable=True)
+    waist_cm = Column(Float, nullable=True)
+    chest_cm = Column(Float, nullable=True)
+    arms_cm = Column(Float, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

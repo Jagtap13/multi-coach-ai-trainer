@@ -111,3 +111,5 @@ class TestPlanStructureExtraction:
         mock_generate.return_value = "this is not json at all"
         result = extract_plan_structure("some answer text", "bodybuilding")
         assert result is None
+
+        

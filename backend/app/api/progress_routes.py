@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from auth_dependency import get_current_user
 from progress import ProgressEntry
+from user import User
 
 router = APIRouter()
 
@@ -19,15 +20,24 @@ class ProgressEntryCreate(BaseModel):
     weight_kg: float
     entry_date: date
     notes: str | None = None
+    waist_cm: float | None = None
+    chest_cm: float | None = None
+    arms_cm: float | None = None
 
 class ProgressEntryResponse(BaseModel):
     id: int
     weight_kg: float
     entry_date: date
     notes: str | None
+    waist_cm: float | None
+    chest_cm: float | None
+    arms_cm: float | None
 
     class Config:
         from_attributes = True
+
+class GoalWeightRequest(BaseModel):
+    goal_weight_kg: float | None = None
 
 @router.post("/progress", response_model=ProgressEntryResponse)
 def create_progress_entry(entry: ProgressEntryCreate, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
@@ -36,6 +46,9 @@ def create_progress_entry(entry: ProgressEntryCreate, current_user=Depends(get_c
         weight_kg=entry.weight_kg,
         entry_date=entry.entry_date,
         notes=entry.notes,
+        waist_cm=entry.waist_cm,
+        chest_cm=entry.chest_cm,
+        arms_cm=entry.arms_cm,
     )
     db.add(new_entry)
     db.commit()
@@ -60,3 +73,13 @@ def delete_progress_entry(entry_id: int, current_user=Depends(get_current_user),
     db.delete(entry)
     db.commit()
     return {"deleted": True}
+
+@router.put("/progress/goal")
+def set_goal_weight(request: GoalWeightRequest, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    current_user.goal_weight_kg = request.goal_weight_kg
+    db.commit()
+    return {"goal_weight_kg": current_user.goal_weight_kg}
+
+@router.get("/progress/goal")
+def get_goal_weight(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    return {"goal_weight_kg": current_user.goal_weight_kg}
