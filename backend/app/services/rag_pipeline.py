@@ -24,10 +24,31 @@ EXERCISE_SYNONYMS = {
     "rear delt fly": ["rear delt fly", "rear delt flys", "rear delt flies", "reverse fly", "reverse flys"],
     "squat": ["squat", "squats", "back squat", "front squat", "box squat"],
     "deadlift": ["deadlift", "deadlifts", "conventional deadlift", "sumo deadlift"],
+    "romanian deadlift": ["romanian deadlift", "romanian deadlifts", "rdl", "rdls", "stiff-leg deadlift", "stiff leg deadlift"],
     "running": ["running", "jogging", "sprinting", "treadmill running"],
     "lunge": ["lunge", "lunges", "walking lunge", "bulgarian split squat"],
     "good morning": ["good morning", "good mornings"],
     "bent-over row": ["bent-over row", "bent-over rows", "barbell row", "barbell rows"],
+    "bench press": ["bench press", "flat bench", "barbell bench press", "incline bench press", "decline bench press"],
+    "push-up": ["push-up", "push-ups", "pushup", "pushups"],
+    "pull-up": ["pull-up", "pull-ups", "pullup", "pullups", "chin-up", "chin-ups", "lat pulldown", "lat pulldowns"],
+    "bicep curl": ["bicep curl", "bicep curls", "barbell curl", "dumbbell curl", "hammer curl", "hammer curls"],
+    "tricep extension": ["tricep extension", "tricep extensions", "skull crusher", "skull crushers", "overhead tricep extension"],
+    "leg press": ["leg press", "leg presses"],
+    "leg extension": ["leg extension", "leg extensions"],
+    "leg curl": ["leg curl", "leg curls", "hamstring curl", "hamstring curls"],
+    "calf raise": ["calf raise", "calf raises", "standing calf raise", "seated calf raise"],
+    "plank": ["plank", "planks", "front plank", "side plank"],
+    "hip thrust": ["hip thrust", "hip thrusts", "glute bridge", "glute bridges"],
+    "clean": ["clean", "power clean", "hang clean"],
+    "snatch": ["snatch", "power snatch", "hang snatch"],
+    "face pull": ["face pull", "face pulls"],
+    "cable row": ["cable row", "cable rows", "seated cable row", "seated row"],
+    "burpee": ["burpee", "burpees"],
+    "jump rope": ["jump rope", "jumping rope", "skipping rope"],
+    "mountain climber": ["mountain climber", "mountain climbers"],
+    "box jump": ["box jump", "box jumps"],
+    "shrug": ["shrug", "shrugs", "barbell shrug", "dumbbell shrug"],
 }
 
 FOOD_SYNONYMS = {
@@ -37,15 +58,20 @@ FOOD_SYNONYMS = {
     "shellfish": ["shellfish", "shrimp", "prawns", "crab", "lobster"],
     "eggs": ["eggs", "egg", "egg whites"],
     "soy": ["soy", "soybean", "tofu", "soy sauce"],
+    "tree nuts": ["tree nuts", "almonds", "cashews", "walnuts", "pistachios", "hazelnuts", "pecans", "brazil nuts"],
+    "fish": ["fish", "salmon", "tuna", "cod", "tilapia", "sardines", "anchovy", "anchovies"],
+    "sesame": ["sesame", "sesame seeds", "tahini", "sesame oil"],
 }
 
 INJURY_RISK_EXERCISES = {
-    "knee": ["squat", "squats", "lunge", "lunges", "box jump", "box jumps", "jumping", "running"],
-    "shoulder": ["overhead press", "lateral raise", "lateral raises", "rear delt fly", "push press"],
-    "lower back": ["deadlift", "deadlifts", "good morning", "good mornings", "bent-over row", "bent-over rows"],
-    "hip": ["squat", "squats", "lunge", "lunges", "deadlift", "deadlifts"],
-    "wrist": ["push-up", "push-ups", "bench press", "front squat"],
-    "ankle": ["running", "jumping", "box jump", "box jumps", "lunge", "lunges"],
+    "knee": ["squat", "squats", "lunge", "lunges", "box jump", "box jumps", "jumping", "running", "leg extension", "leg extensions", "burpee", "burpees"],
+    "shoulder": ["overhead press", "lateral raise", "lateral raises", "rear delt fly", "push press", "bench press", "pull-up", "pull-ups", "face pull", "face pulls", "snatch"],
+    "lower back": ["deadlift", "deadlifts", "good morning", "good mornings", "bent-over row", "bent-over rows", "romanian deadlift", "romanian deadlifts", "clean", "hip thrust", "hip thrusts"],
+    "hip": ["squat", "squats", "lunge", "lunges", "deadlift", "deadlifts", "hip thrust", "hip thrusts"],
+    "wrist": ["push-up", "push-ups", "bench press", "front squat", "clean", "snatch"],
+    "ankle": ["running", "jumping", "box jump", "box jumps", "lunge", "lunges", "jump rope", "burpee", "burpees"],
+    "elbow": ["bicep curl", "bicep curls", "tricep extension", "tricep extensions", "bench press", "push-up", "push-ups", "pull-up", "pull-ups"],
+    "neck": ["overhead press", "shrug", "shrugs", "clean", "snatch"],
 }
 
 ALLERGY_RISK_FOODS = {
@@ -55,6 +81,9 @@ ALLERGY_RISK_FOODS = {
     "shellfish": ["oyster sauce", "fish sauce", "shrimp paste"],
     "eggs": ["mayonnaise", "meringue", "custard", "egg wash"],
     "soy": ["edamame", "miso", "soy lecithin", "tempeh", "soy sauce"],
+    "tree nuts": ["almond milk", "almond butter", "cashew butter", "nut oil", "marzipan", "pesto"],
+    "fish": ["fish sauce", "worcestershire sauce", "fish oil", "caesar dressing"],
+    "sesame": ["tahini", "hummus", "halva", "sesame oil", "za'atar"],
 }
 
 def get_synonym_map(coach_type):
@@ -235,7 +264,7 @@ def extract_injury_context(conversation_history):
     history_text = "\n".join(
         [f"User: {t['question']}\nCoach: {t['answer']}" for t in conversation_history]
     )
-    extraction_prompt = f"""Read the following coaching conversation. Identify if the user mentioned an injury or physical limitation tied to a specific body part or joint. Respond with exactly ONE of these words and nothing else: knee, shoulder, lower back, hip, wrist, ankle, none
+    extraction_prompt = f"""Read the following coaching conversation. Identify if the user mentioned an injury or physical limitation tied to a specific body part or joint. Respond with exactly ONE of these words and nothing else: knee, shoulder, lower back, hip, wrist, ankle, elbow, neck, none
 
 Conversation:
 {history_text}
@@ -255,7 +284,7 @@ def extract_allergy_context(conversation_history):
     history_text = "\n".join(
         [f"User: {t['question']}\nCoach: {t['answer']}" for t in conversation_history]
     )
-    extraction_prompt = f"""Read the following coaching conversation. Identify if the user mentioned a food allergy or intolerance tied to one of these categories. Respond with exactly ONE of these words and nothing else: dairy, peanuts, gluten, shellfish, eggs, soy, none
+    extraction_prompt = f"""Read the following coaching conversation. Identify if the user mentioned a food allergy or intolerance tied to one of these categories. Respond with exactly ONE of these words and nothing else: dairy, peanuts, gluten, shellfish, eggs, soy, tree nuts, fish, sesame, none
 
 Conversation:
 {history_text}

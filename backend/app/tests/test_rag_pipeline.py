@@ -28,8 +28,8 @@ class TestSynonymExpansion:
         assert "overhead press" in aliases
 
     def test_unknown_exercise_falls_back_to_itself(self):
-        aliases = expand_with_synonyms("Face Pulls", "bodybuilding")
-        assert aliases == ["face pulls"]
+        aliases = expand_with_synonyms("Kettlebell Swing", "bodybuilding")
+        assert aliases == ["kettlebell swing"]
 
     def test_nutrition_uses_food_synonyms_not_exercise(self):
         aliases = expand_with_synonyms("Dairy", "nutrition")
