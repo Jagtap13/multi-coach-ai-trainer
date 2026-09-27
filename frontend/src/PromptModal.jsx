@@ -24,7 +24,7 @@ function PromptModal({ isOpen, mode = 'confirm', title, message, defaultValue = 
       onClick={onCancel}
     >
       <div
-        className="bg-(--color-bg) rounded-md border border-white/10 w-full max-w-sm p-5"
+        className="bg-(--color-bg) rounded-md border border-(--color-border) w-full max-w-sm p-5"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="text-sm font-medium mb-2">{title}</div>
@@ -38,7 +38,7 @@ function PromptModal({ isOpen, mode = 'confirm', title, message, defaultValue = 
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleConfirm() }}
             autoFocus
-            className="w-full bg-black/20 rounded-md px-3 py-2 text-sm outline-none mb-4"
+            className="w-full bg-(--color-input-bg) rounded-md px-3 py-2 text-sm outline-none mb-4"
           />
         )}
         {mode === 'choices' && (
@@ -47,7 +47,7 @@ function PromptModal({ isOpen, mode = 'confirm', title, message, defaultValue = 
               <button
                 key={choice.value}
                 onClick={() => onConfirm(choice.value)}
-                className="text-left text-sm px-3 py-2 rounded-md border border-white/10 hover:border-white/30 transition-all"
+                className="text-left text-sm px-3 py-2 rounded-md border border-(--color-border) hover:border-white/30 transition-all"
               >
                 {choice.label}
               </button>
@@ -64,14 +64,14 @@ function PromptModal({ isOpen, mode = 'confirm', title, message, defaultValue = 
           <div className="flex justify-end gap-2">
             <button
               onClick={onCancel}
-              className="text-xs uppercase tracking-wide px-4 py-2 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
+              className="text-xs uppercase tracking-wide px-4 py-2 rounded-md border border-(--color-border) text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
             >
               Cancel
             </button>
             <button
               onClick={handleConfirm}
               className="text-xs uppercase tracking-wide px-4 py-2 rounded-md font-medium transition-opacity"
-              style={{ backgroundColor: accentColor, color: '#1C1D1F' }}
+              style={{ backgroundColor: accentColor, color: 'var(--color-btn-text)' }}
             >
               {confirmLabel}
             </button>

@@ -6,6 +6,7 @@ import ProgressTracker from "./ProgressTracker";
 import PlanViewer from "./PlanViewer";
 import FeedbackDashboard from "./FeedbackDashboard";
 import KnowledgeBaseAdmin from "./KnowledgeBaseAdmin";
+import { useTheme } from "./ThemeContext";
 
 const COACHES = [
   {
@@ -55,6 +56,7 @@ const COACHES = [
 ];
 
 function App() {
+  const { theme, toggleTheme } = useTheme();
   const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [selectedCoach, setSelectedCoach] = useState("bodybuilding");
   const [view, setView] = useState("coaches");
@@ -94,7 +96,7 @@ function App() {
   }
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      <header className="border-b border-white/10 px-4 md:px-8 py-4 md:py-6 flex items-center justify-between gap-3">
+      <header className="border-b border-(--color-border) px-4 md:px-8 py-4 md:py-6 flex items-center justify-between gap-3">
         <div>
           <h1 className="font-[Oswald] uppercase tracking-wide text-xl md:text-3xl font-semibold">
             AI Personal Trainer{" "}
@@ -108,12 +110,22 @@ function App() {
             medical advice.
           </p>
         </div>
-        <button
-          onClick={handleLogout}
-          className="text-xs uppercase tracking-wide px-4 py-2 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all shrink-0"
-        >
-          Log out
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={toggleTheme}
+            className="text-xs uppercase tracking-wide px-4 py-2 rounded-md border border-(--color-border) text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
+            aria-label="Toggle theme"
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? "☀ Light" : "☾ Dark"}
+          </button>
+          <button
+            onClick={handleLogout}
+            className="text-xs uppercase tracking-wide px-4 py-2 rounded-md border border-(--color-border) text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
+          >
+            Log out
+          </button>
+        </div>
       </header>
 
         <div className="flex gap-2 max-w-5xl mx-auto w-full px-4 md:px-8 pt-4 md:pt-8 overflow-x-auto">
@@ -121,8 +133,8 @@ function App() {
           onClick={() => setView("coaches")}
           className={`text-xs uppercase tracking-wide px-4 py-2 rounded-md border transition-all ${
             view === "coaches"
-              ? "border-white/30 bg-white/5"
-              : "border-white/10 text-(--color-chalk-dim) hover:border-white/20"
+              ? "border-white/30 bg-(--color-surface-hover)"
+              : "border-(--color-border) text-(--color-chalk-dim) hover:border-white/20"
           }`}
         >
           Coaches
@@ -131,8 +143,8 @@ function App() {
           onClick={() => setView("progress")}
           className={`text-xs uppercase tracking-wide px-4 py-2 rounded-md border transition-all ${
             view === "progress"
-              ? "border-white/30 bg-white/5"
-              : "border-white/10 text-(--color-chalk-dim) hover:border-white/20"
+              ? "border-white/30 bg-(--color-surface-hover)"
+              : "border-(--color-border) text-(--color-chalk-dim) hover:border-white/20"
           }`}
         >
           Progress
@@ -141,8 +153,8 @@ function App() {
           onClick={() => setView("plans")}
           className={`text-xs uppercase tracking-wide px-4 py-2 rounded-md border transition-all ${
             view === "plans"
-              ? "border-white/30 bg-white/5"
-              : "border-white/10 text-(--color-chalk-dim) hover:border-white/20"
+              ? "border-white/30 bg-(--color-surface-hover)"
+              : "border-(--color-border) text-(--color-chalk-dim) hover:border-white/20"
           }`}
         >
           Plans
@@ -153,8 +165,8 @@ function App() {
               onClick={() => setView("feedback")}
               className={`text-xs uppercase tracking-wide px-4 py-2 rounded-md border transition-all ${
                 view === "feedback"
-                  ? "border-white/30 bg-white/5"
-                  : "border-white/10 text-(--color-chalk-dim) hover:border-white/20"
+                  ? "border-white/30 bg-(--color-surface-hover)"
+                  : "border-(--color-border) text-(--color-chalk-dim) hover:border-white/20"
               }`}
             >
               Feedback
@@ -163,8 +175,8 @@ function App() {
               onClick={() => setView("kb-admin")}
               className={`text-xs uppercase tracking-wide px-4 py-2 rounded-md border transition-all ${
                 view === "kb-admin"
-                  ? "border-white/30 bg-white/5"
-                  : "border-white/10 text-(--color-chalk-dim) hover:border-white/20"
+                  ? "border-white/30 bg-(--color-surface-hover)"
+                  : "border-(--color-border) text-(--color-chalk-dim) hover:border-white/20"
               }`}
             >
               Knowledge Base
@@ -186,8 +198,8 @@ function App() {
                   onClick={() => setSelectedCoach(coach.id)}
                   className={`text-left px-4 py-3 rounded-md border transition-all ${
                     selectedCoach === coach.id
-                      ? "border-white/30 bg-white/5"
-                      : "border-white/10 hover:border-white/20"
+                      ? "border-white/30 bg-(--color-surface-hover)"
+                      : "border-(--color-border) hover:border-white/20"
                   }`}
                   style={{
                     borderLeftWidth: "4px",
@@ -211,7 +223,7 @@ function App() {
             />
           </aside>
 
-          <main className="flex-1 border border-white/10 rounded-md overflow-hidden">
+          <main className="flex-1 border border-(--color-border) rounded-md overflow-hidden">
             <ChatWindow coach={activeCoach} profile={profile} token={token} />
           </main>
         </div>
@@ -219,7 +231,7 @@ function App() {
 
       {view === "progress" && (
         <div className="flex-1 max-w-5xl mx-auto w-full px-4 md:px-8 py-4 md:py-8 min-h-0">
-          <div className="h-full border border-white/10 rounded-md overflow-hidden">
+          <div className="h-full border border-(--color-border) rounded-md overflow-hidden">
             <ProgressTracker token={token} />
           </div>
         </div>
@@ -227,7 +239,7 @@ function App() {
 
       {view === "plans" && (
         <div className="flex-1 max-w-5xl mx-auto w-full px-4 md:px-8 py-4 md:py-8 min-h-0">
-          <div className="h-full border border-white/10 rounded-md overflow-hidden">
+          <div className="h-full border border-(--color-border) rounded-md overflow-hidden">
             <PlanViewer token={token} />
           </div>
         </div>
@@ -235,7 +247,7 @@ function App() {
 
       {view === "feedback" && (
         <div className="flex-1 max-w-5xl mx-auto w-full px-4 md:px-8 py-4 md:py-8 min-h-0">
-          <div className="h-full border border-white/10 rounded-md overflow-hidden">
+          <div className="h-full border border-(--color-border) rounded-md overflow-hidden">
             <FeedbackDashboard token={token} />
           </div>
         </div>
@@ -243,7 +255,7 @@ function App() {
 
             {view === "kb-admin" && (
         <div className="flex-1 max-w-5xl mx-auto w-full px-4 md:px-8 py-4 md:py-8 min-h-0">
-          <div className="h-full border border-white/10 rounded-md overflow-hidden">
+          <div className="h-full border border-(--color-border) rounded-md overflow-hidden">
             <KnowledgeBaseAdmin token={token} />
           </div>
         </div>

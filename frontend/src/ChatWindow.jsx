@@ -69,7 +69,7 @@ function ChatWindow({ coach, profile, token }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-                body: JSON.stringify({
+        body: JSON.stringify({
           question: userMessage.content,
           coach_type: coach.id,
           conversation_id: conversationId,
@@ -239,6 +239,7 @@ function ChatWindow({ coach, profile, token }) {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
+
   const handleNewChat = () => {
     setMessages([]);
     setConversationId(null);
@@ -348,14 +349,14 @@ function ChatWindow({ coach, profile, token }) {
           <button
             onClick={handleNewChat}
             className="text-xs uppercase tracking-wide px-3 py-1.5 rounded-md font-medium transition-opacity"
-            style={{ backgroundColor: coach.accent, color: "#1C1D1F" }}
+            style={{ backgroundColor: coach.accent, color: "var(--color-btn-text)" }}
           >
             + New Chat
           </button>
           {messages.length > 0 && !loadingHistory && (
             <button
               onClick={handleExport}
-              className="text-xs uppercase tracking-wide px-3 py-1.5 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
+              className="text-xs uppercase tracking-wide px-3 py-1.5 rounded-md border border-(--color-border) text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
             >
               Export
             </button>
@@ -363,7 +364,7 @@ function ChatWindow({ coach, profile, token }) {
           {conversations.length > 0 && (
             <button
               onClick={() => setPanelOpen(true)}
-              className="text-xs uppercase tracking-wide px-3 py-1.5 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
+              className="text-xs uppercase tracking-wide px-3 py-1.5 rounded-md border border-(--color-border) text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
             >
               History
             </button>
@@ -387,7 +388,7 @@ function ChatWindow({ coach, profile, token }) {
                   <button
                     key={i}
                     onClick={() => setInput(q)}
-                    className="text-left text-xs px-3 py-2 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
+                    className="text-left text-xs px-3 py-2 rounded-md border border-(--color-border) text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all"
                   >
                     {q}
                   </button>
@@ -401,15 +402,15 @@ function ChatWindow({ coach, profile, token }) {
           <div
             key={i}
             className={`group relative max-w-[80%] px-4 py-3 rounded-md text-sm transition-all ${msg.role === "user"
-                ? "self-end bg-white/10"
+                ? "self-end bg-(--color-bg-elevated)"
                 : msg.role === "error"
-                  ? "self-start bg-red-900/30 text-red-300"
+                  ? "self-start bg-(--color-error-bg) text-(--color-error-text)"
                   : "self-start bg-(--color-bg-elevated)"
               }`}
           >
             <p className="whitespace-pre-wrap pr-14">{msg.content}</p>
             {msg.sources && msg.sources.length > 0 && (
-              <p className="text-xs text-(--color-chalk-dim) mt-2 pt-2 border-t border-white/10">
+              <p className="text-xs text-(--color-chalk-dim) mt-2 pt-2 border-t border-(--color-border)">
                 Sources: {msg.sources.join(", ")}
               </p>
             )}
@@ -560,8 +561,8 @@ function ChatWindow({ coach, profile, token }) {
         )}
         <div ref={bottomRef} />
       </div>
-            <div>
-                <div className="border-t border-white/10 p-4 flex flex-col sm:flex-row gap-3">
+      <div>
+        <div className="border-t border-(--color-border) p-4 flex flex-col sm:flex-row gap-3">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -576,7 +577,7 @@ function ChatWindow({ coach, profile, token }) {
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="bg-(--color-bg-elevated) rounded-md px-2 py-2 text-xs outline-none border border-white/10 text-(--color-chalk-dim)"
+              className="bg-(--color-bg-elevated) rounded-md px-2 py-2 text-xs outline-none border border-(--color-border) text-(--color-chalk-dim)"
             >
               <option value="en">EN</option>
               <option value="hi">हिं</option>
@@ -587,7 +588,7 @@ function ChatWindow({ coach, profile, token }) {
                 onClick={handleVoiceInput}
                 className={`px-4 py-2 rounded-md transition-all ${isListening
                     ? "bg-red-500/20 text-red-400 animate-pulse"
-                    : "border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30"
+                    : "border border-(--color-border) text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30"
                   }`}
                 aria-label={isListening ? "Stop listening" : "Voice input"}
                 title={
@@ -612,7 +613,7 @@ function ChatWindow({ coach, profile, token }) {
                   <line x1="8" y1="23" x2="16" y2="23" />
                 </svg>
               </button>
-              <span className="absolute -top-1.5 -right-1.5 text-[8px] uppercase tracking-wide bg-white/10 text-(--color-chalk-dim) px-1 py-0.5 rounded">
+              <span className="absolute -top-1.5 -right-1.5 text-[8px] uppercase tracking-wide bg-(--color-border) text-(--color-chalk-dim) px-1 py-0.5 rounded">
                 Beta
               </span>
             </div>
@@ -620,7 +621,7 @@ function ChatWindow({ coach, profile, token }) {
               onClick={sendMessage}
               disabled={loading || !input.trim()}
               className="px-5 py-2 rounded-md text-sm font-medium uppercase tracking-wide disabled:opacity-40 transition-opacity"
-              style={{ backgroundColor: coach.accent, color: "#1C1D1F" }}
+              style={{ backgroundColor: coach.accent, color: "var(--color-btn-text)" }}
             >
               Send
             </button>

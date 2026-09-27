@@ -21,3 +21,7 @@ class User(Base):
     goal = Column(String, nullable=True)
     gender = Column(String, nullable=True)
     goal_weight_kg = Column(Float, nullable=True)
+
+    # Password reset fields
+    reset_token = Column(String, nullable=True)
+    reset_token_expires = Column(DateTime(timezone=True), nullable=True)

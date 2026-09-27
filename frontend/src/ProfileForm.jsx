@@ -67,7 +67,7 @@ function ProfileForm({ profile, setProfile, token }) {
   }
 
   return (
-    <div className="mt-6 pt-6 border-t border-white/10">
+    <div className="mt-6 pt-6 border-t border-(--color-border)">
       <h2 className="text-xs uppercase tracking-widest text-(--color-chalk-dim) mb-3">
         Your Profile
       </h2>
@@ -139,7 +139,7 @@ function ProfileForm({ profile, setProfile, token }) {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="mt-1 text-xs uppercase tracking-wide px-3 py-2 rounded-md border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all disabled:opacity-50"
+          className="mt-1 text-xs uppercase tracking-wide px-3 py-2 rounded-md border border-(--color-border) text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all disabled:opacity-50"
         >
           {saving ? 'Saving...' : saveStatus || 'Save Profile'}
         </button>

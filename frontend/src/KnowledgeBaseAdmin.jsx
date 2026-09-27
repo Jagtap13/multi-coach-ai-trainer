@@ -99,8 +99,8 @@ function KnowledgeBaseAdmin({ token }) {
             onClick={() => selectFile(filename)}
             className={`text-xs uppercase tracking-wide px-3 py-1.5 rounded-md border transition-all ${
               activeFile === filename
-                ? 'border-white/30 bg-white/5'
-                : 'border-white/10 text-(--color-chalk-dim) hover:border-white/20'
+                ? 'border-white/30 bg-(--color-surface-hover)'
+                : 'border-(--color-border) text-(--color-chalk-dim) hover:border-white/20'
             }`}
           >
             {filename.replace('.txt', '')}
@@ -111,7 +111,7 @@ function KnowledgeBaseAdmin({ token }) {
       <textarea
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
-        className="flex-1 bg-(--color-bg-elevated) rounded-md border border-white/10 p-4 text-sm font-mono resize-none outline-none"
+        className="flex-1 bg-(--color-bg-elevated) rounded-md border border-(--color-border) p-4 text-sm font-mono resize-none outline-none"
         spellCheck={false}
       />
 
@@ -120,7 +120,7 @@ function KnowledgeBaseAdmin({ token }) {
           onClick={handleSave}
           disabled={!hasChanges || saving}
           className="px-5 py-2 rounded-md text-sm font-medium uppercase tracking-wide disabled:opacity-40 transition-opacity"
-          style={{ backgroundColor: ACCENT, color: '#1C1D1F' }}
+          style={{ backgroundColor: ACCENT, color: 'var(--color-btn-text)' }}
         >
           {saving ? 'Saving & Re-ingesting...' : 'Save & Re-ingest'}
         </button>

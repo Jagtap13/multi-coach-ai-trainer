@@ -71,7 +71,7 @@ function PlanViewer({ token }) {
             <button
               key={plan.id}
               onClick={() => setSelectedPlan(plan)}
-              className="text-left bg-(--color-bg-elevated) rounded-md border border-white/10 hover:border-white/30 transition-all p-4"
+              className="text-left bg-(--color-bg-elevated) rounded-md border border-(--color-border) hover:border-white/30 transition-all p-4"
             >
               <div className="text-sm font-medium">{plan.title}</div>
               <div className="text-xs text-(--color-chalk-dim) mt-1 capitalize">
@@ -91,7 +91,7 @@ function PlanViewer({ token }) {
           onClick={() => setSelectedPlan(null)}
         >
           <div
-            className="bg-(--color-bg) rounded-md border border-white/10 w-full max-w-lg max-h-[80vh] overflow-y-auto p-6"
+            className="bg-(--color-bg) rounded-md border border-(--color-border) w-full max-w-lg max-h-[80vh] overflow-y-auto p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between mb-1">
@@ -120,7 +120,7 @@ function PlanViewer({ token }) {
                       </div>
                       <ul className="flex flex-col gap-1">
                         {day.items.map((item, j) => (
-                          <li key={j} className="text-sm text-(--color-chalk-dim) pl-3 border-l border-white/10">
+                          <li key={j} className="text-sm text-(--color-chalk-dim) pl-3 border-l border-(--color-border)">
                             {item}
                           </li>
                         ))}

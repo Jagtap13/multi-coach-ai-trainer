@@ -28,8 +28,8 @@ function HistoryPanel({ isOpen, onClose, conversations, onSelect, onDelete, coac
     <div className="absolute inset-0 z-10 flex justify-end">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
-      <div className="relative w-72 h-full bg-(--color-bg-elevated) border-l border-white/10 flex flex-col">
-        <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
+      <div className="relative w-72 h-full bg-(--color-bg-elevated) border-l border-(--color-border) flex flex-col">
+        <div className="flex items-center justify-between px-4 py-4 border-b border-(--color-border)">
           <h3 className="text-xs uppercase tracking-widest text-(--color-chalk-dim)">
             {coachLabel} Conversations
           </h3>
@@ -52,7 +52,7 @@ function HistoryPanel({ isOpen, onClose, conversations, onSelect, onDelete, coac
             <div
               key={conv.conversation_id}
               onContextMenu={(e) => handleRightClick(e, conv.conversation_id)}
-              className="relative flex items-start gap-1 rounded-md hover:bg-white/5 transition-all border border-transparent hover:border-white/10"
+              className="relative flex items-start gap-1 rounded-md hover:bg-(--color-surface-hover) transition-all border border-transparent hover:border-(--color-border)"
             >
               <button
                 onClick={() => onSelect(conv.conversation_id)}

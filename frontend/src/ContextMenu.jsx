@@ -17,7 +17,7 @@ function ContextMenu({ x, y, onDelete, onClose }) {
     <div
       ref={menuRef}
       style={{ top: y, left: x }}
-      className="fixed z-50 bg-(--color-bg-elevated) border border-white/10 rounded-md shadow-lg py-1 min-w-[140px]"
+      className="fixed z-50 bg-(--color-bg-elevated) border border-white/10 rounded-md shadow-lg py-1 min-w-35"
     >
       <button
         onClick={onDelete}

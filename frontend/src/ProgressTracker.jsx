@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine } from 'recharts'
+import { useTheme } from './ThemeContext'
 
 const API_URL = 'http://127.0.0.1:8000'
 const ACCENT = '#4A7A9D'
 
 function ProgressTracker({ token }) {
+  const { theme } = useTheme()
   const chartContainerRef = useRef(null)
   const [chartWidth, setChartWidth] = useState(0)
   const [entries, setEntries] = useState([])
@@ -21,6 +23,23 @@ function ProgressTracker({ token }) {
   const [goalInput, setGoalInput] = useState('')
   const [savingGoal, setSavingGoal] = useState(false)
 
+  // Recharts needs real color values (SVG stroke/fill), not CSS variables —
+  // so we pick the right palette in JS based on the current theme.
+  const chartColors = theme === 'light'
+    ? {
+        grid: 'rgba(0,0,0,0.1)',
+        tick: '#5A5854',
+        tooltipBg: '#FFFFFF',
+        tooltipBorder: 'rgba(0,0,0,0.1)',
+        tooltipLabel: '#1C1D1F',
+      }
+    : {
+        grid: 'rgba(255,255,255,0.1)',
+        tick: '#8A8781',
+        tooltipBg: '#1C1D1F',
+        tooltipBorder: 'rgba(255,255,255,0.1)',
+        tooltipLabel: '#EDEAE3',
+      }
 
     const loadEntries = async () => {
     setLoading(true)
@@ -156,7 +175,7 @@ function ProgressTracker({ token }) {
         </p>
       </div>
 
-            <div className="flex flex-wrap gap-3 items-end bg-(--color-bg-elevated) p-4 rounded-md border border-white/10 mb-1">
+            <div className="flex flex-wrap gap-3 items-end bg-(--color-bg-elevated) p-4 rounded-md border border-(--color-border) mb-1">
         <div>
           <label className="text-xs text-(--color-chalk-dim) block mb-1">Goal Weight (kg)</label>
           <input
@@ -165,19 +184,19 @@ function ProgressTracker({ token }) {
             value={goalInput}
             onChange={(e) => setGoalInput(e.target.value)}
             placeholder="optional"
-            className="bg-black/20 rounded-md px-3 py-2 text-sm outline-none w-32"
+            className="bg-(--color-input-bg) rounded-md px-3 py-2 text-sm outline-none w-32"
           />
         </div>
         <button
           onClick={handleSaveGoal}
           disabled={savingGoal}
-          className="px-4 py-2 rounded-md text-xs uppercase tracking-wide border border-white/10 text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all disabled:opacity-40"
+          className="px-4 py-2 rounded-md text-xs uppercase tracking-wide border border-(--color-border) text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all disabled:opacity-40"
         >
           {savingGoal ? 'Saving...' : 'Set Goal'}
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-3 items-end bg-(--color-bg-elevated) p-4 rounded-md border border-white/10">
+      <div className="flex flex-wrap gap-3 items-end bg-(--color-bg-elevated) p-4 rounded-md border border-(--color-border)">
         <div>
           <label className="text-xs text-(--color-chalk-dim) block mb-1">Weight (kg)</label>
           <input
@@ -185,7 +204,7 @@ function ProgressTracker({ token }) {
             step="0.1"
             value={weight}
             onChange={(e) => setWeight(e.target.value)}
-            className="bg-black/20 rounded-md px-3 py-2 text-sm outline-none w-28"
+            className="bg-(--color-input-bg) rounded-md px-3 py-2 text-sm outline-none w-28"
           />
         </div>
         <div>
@@ -194,7 +213,7 @@ function ProgressTracker({ token }) {
             type="date"
             value={entryDate}
             onChange={(e) => setEntryDate(e.target.value)}
-            className="bg-black/20 rounded-md px-3 py-2 text-sm outline-none"
+            className="bg-(--color-input-bg) rounded-md px-3 py-2 text-sm outline-none"
           />
         </div>
         <div className="flex-1 min-w-[150px]">
@@ -204,7 +223,7 @@ function ProgressTracker({ token }) {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="e.g. after a cut"
-            className="bg-black/20 rounded-md px-3 py-2 text-sm outline-none w-full"
+            className="bg-(--color-input-bg) rounded-md px-3 py-2 text-sm outline-none w-full"
           />
         </div>
                 <button
@@ -217,14 +236,14 @@ function ProgressTracker({ token }) {
           onClick={handleAddEntry}
           disabled={submitting || !weight || !entryDate}
           className="px-5 py-2 rounded-md text-sm font-medium uppercase tracking-wide disabled:opacity-40 transition-opacity"
-          style={{ backgroundColor: ACCENT, color: '#1C1D1F' }}
+          style={{ backgroundColor: ACCENT, color: 'var(--color-btn-text)' }}
         >
           Add
         </button>
       </div>
 
       {showMeasurements && (
-        <div className="flex flex-wrap gap-3 items-end bg-(--color-bg-elevated) p-4 rounded-md border border-white/10 -mt-3">
+        <div className="flex flex-wrap gap-3 items-end bg-(--color-bg-elevated) p-4 rounded-md border border-(--color-border) -mt-3">
           <div>
             <label className="text-xs text-(--color-chalk-dim) block mb-1">Waist (cm)</label>
             <input
@@ -232,7 +251,7 @@ function ProgressTracker({ token }) {
               step="0.1"
               value={waist}
               onChange={(e) => setWaist(e.target.value)}
-              className="bg-black/20 rounded-md px-3 py-2 text-sm outline-none w-24"
+              className="bg-(--color-input-bg) rounded-md px-3 py-2 text-sm outline-none w-24"
             />
           </div>
           <div>
@@ -242,7 +261,7 @@ function ProgressTracker({ token }) {
               step="0.1"
               value={chest}
               onChange={(e) => setChest(e.target.value)}
-              className="bg-black/20 rounded-md px-3 py-2 text-sm outline-none w-24"
+              className="bg-(--color-input-bg) rounded-md px-3 py-2 text-sm outline-none w-24"
             />
           </div>
           <div>
@@ -252,7 +271,7 @@ function ProgressTracker({ token }) {
               step="0.1"
               value={arms}
               onChange={(e) => setArms(e.target.value)}
-              className="bg-black/20 rounded-md px-3 py-2 text-sm outline-none w-24"
+              className="bg-(--color-input-bg) rounded-md px-3 py-2 text-sm outline-none w-24"
             />
           </div>
         </div>
@@ -270,15 +289,15 @@ function ProgressTracker({ token }) {
 
       {!loading && entries.length > 0 && (
         <>
-          <div ref={chartContainerRef} className="bg-(--color-bg-elevated) rounded-md border border-white/10 p-4 h-64">
+          <div ref={chartContainerRef} className="bg-(--color-bg-elevated) rounded-md border border-(--color-border) p-4 h-64">
             {chartWidth > 0 && (
                 <LineChart width={chartWidth - 32} height={224} data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis dataKey="date" tick={{ fill: '#8A8781', fontSize: 11 }} />
-                <YAxis tick={{ fill: '#8A8781', fontSize: 11 }} domain={['auto', 'auto']} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                <XAxis dataKey="date" tick={{ fill: chartColors.tick, fontSize: 11 }} />
+                <YAxis tick={{ fill: chartColors.tick, fontSize: 11 }} domain={['auto', 'auto']} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#1C1D1F', border: '1px solid rgba(255,255,255,0.1)' }}
-                  labelStyle={{ color: '#EDEAE3' }}
+                  contentStyle={{ backgroundColor: chartColors.tooltipBg, border: `1px solid ${chartColors.tooltipBorder}` }}
+                  labelStyle={{ color: chartColors.tooltipLabel }}
                 />
                 {goalWeight && (
                   <ReferenceLine y={goalWeight} stroke="#D9A441" strokeDasharray="4 4" label={{ value: 'Goal', fill: '#D9A441', fontSize: 11, position: 'right' }} />
@@ -292,7 +311,7 @@ function ProgressTracker({ token }) {
             {entries.slice().reverse().map((entry) => (
               <div
                 key={entry.id}
-                className="flex items-center justify-between bg-(--color-bg-elevated) px-4 py-2.5 rounded-md border border-white/10 text-sm"
+                className="flex items-center justify-between bg-(--color-bg-elevated) px-4 py-2.5 rounded-md border border-(--color-border) text-sm"
               >
                                 <div>
                   <span className="font-medium">{entry.weight_kg} kg</span>

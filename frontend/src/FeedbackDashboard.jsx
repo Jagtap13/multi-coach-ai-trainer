@@ -74,7 +74,7 @@ function FeedbackDashboard({ token }) {
             {coachTypes.map((coach) => (
               <div
                 key={coach}
-                className="bg-(--color-bg-elevated) rounded-md border border-white/10 p-4"
+                className="bg-(--color-bg-elevated) rounded-md border border-(--color-border) p-4"
               >
                 <div className="text-sm font-medium capitalize mb-2">{coach}</div>
                 <div className="flex gap-3 text-sm">
@@ -97,7 +97,7 @@ function FeedbackDashboard({ token }) {
             {downvoted.map((item) => (
               <div
                 key={item.id}
-                className="bg-(--color-bg-elevated) rounded-md border border-white/10 overflow-hidden"
+                className="bg-(--color-bg-elevated) rounded-md border border-(--color-border) overflow-hidden"
               >
                 <button
                   onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
@@ -115,7 +115,7 @@ function FeedbackDashboard({ token }) {
                   </span>
                 </button>
                 {expandedId === item.id && (
-                  <div className="px-4 pb-4 border-t border-white/10 pt-3">
+                  <div className="px-4 pb-4 border-t border-(--color-border) pt-3">
                     <p className="text-sm text-(--color-chalk-dim) whitespace-pre-wrap">
                       {item.answer}
                     </p>
