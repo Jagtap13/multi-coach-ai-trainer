@@ -7,6 +7,8 @@ function PlanViewer({ token }) {
   const [plans, setPlans] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedPlan, setSelectedPlan] = useState(null)
+  const [downloading, setDownloading] = useState(false)
+  const [downloadError, setDownloadError] = useState('')
 
   const loadPlans = async () => {
     setLoading(true)
@@ -28,6 +30,44 @@ function PlanViewer({ token }) {
   useEffect(() => {
     loadPlans()
   }, [])
+
+  const openPlan = (plan) => {
+    setDownloadError('')
+    setSelectedPlan(plan)
+  }
+
+  // A plain <a href> can't send the Authorization header, so we fetch the
+  // PDF with the token, turn the response into a blob, and trigger the
+  // browser download from a temporary link.
+  const handleDownloadPdf = async (plan) => {
+    setDownloading(true)
+    setDownloadError('')
+    try {
+      const response = await fetch(`${API_URL}/plans/${plan.id}/pdf`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`)
+      }
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+
+      const safeTitle =
+        plan.title.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'plan'
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${safeTitle}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Failed to download plan PDF:', err)
+      setDownloadError('Could not generate the PDF. Please try again.')
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   const handleDelete = async (id) => {
     const confirmed = window.confirm('Delete this plan? This cannot be undone.')
@@ -70,7 +110,7 @@ function PlanViewer({ token }) {
           {plans.map((plan) => (
             <button
               key={plan.id}
-              onClick={() => setSelectedPlan(plan)}
+              onClick={() => openPlan(plan)}
               className="text-left bg-(--color-bg-elevated) rounded-md border border-(--color-border) hover:border-white/30 transition-all p-4"
             >
               <div className="text-sm font-medium">{plan.title}</div>
@@ -135,12 +175,24 @@ function PlanViewer({ token }) {
               )}
             </div>
 
-            <button
-              onClick={() => handleDelete(selectedPlan.id)}
-              className="mt-5 text-xs uppercase tracking-wide text-(--color-chalk-dim) hover:text-red-400 transition-colors"
-            >
-              Delete Plan
-            </button>
+            <div className="mt-5 flex items-center gap-4">
+              <button
+                onClick={() => handleDownloadPdf(selectedPlan)}
+                disabled={downloading}
+                className="text-xs uppercase tracking-wide px-4 py-2 rounded-md border border-(--color-border) text-(--color-chalk-dim) hover:text-(--color-chalk) hover:border-white/30 transition-all disabled:opacity-50"
+              >
+                {downloading ? 'Generating...' : 'Download PDF'}
+              </button>
+              <button
+                onClick={() => handleDelete(selectedPlan.id)}
+                className="text-xs uppercase tracking-wide text-(--color-chalk-dim) hover:text-red-400 transition-colors"
+              >
+                Delete Plan
+              </button>
+            </div>
+            {downloadError && (
+              <p className="mt-3 text-xs text-(--color-error-text)">{downloadError}</p>
+            )}
           </div>
         </div>
       )}

@@ -6,6 +6,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "models"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "services"))
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import json
@@ -14,6 +15,7 @@ from database import get_db
 from auth_dependency import get_current_user
 from workout_plan import WorkoutPlan
 from rag_pipeline import extract_plan_structure
+from plan_pdf import build_plan_pdf
 
 router = APIRouter()
 
@@ -75,6 +77,38 @@ def list_plans(current_user=Depends(get_current_user), db: Session = Depends(get
         }
         for p in plans
     ]
+
+@router.get("/plans/{plan_id}/pdf")
+def download_plan_pdf(plan_id: int, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    # Same ownership check as delete: a user can only export their own plans.
+    plan = db.query(WorkoutPlan).filter(
+        WorkoutPlan.id == plan_id,
+        WorkoutPlan.user_id == current_user.id
+    ).first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="Plan not found")
+
+    try:
+        plan_data = json.loads(plan.plan_data) if plan.plan_data else None
+    except json.JSONDecodeError:
+        # Malformed structured data - fall back to the raw text layout.
+        plan_data = None
+
+    pdf_bytes = build_plan_pdf(
+        title=plan.title,
+        coach_type=plan.coach_type,
+        created_at=plan.created_at,
+        plan_data=plan_data,
+        raw_text=plan.raw_text,
+    )
+
+    # ASCII-only filename in the header (titles can contain any characters);
+    # the frontend sets the friendly filename itself when saving the blob.
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="plan-{plan.id}.pdf"'},
+    )
 
 @router.delete("/plans/{plan_id}")
 def delete_plan(plan_id: int, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
