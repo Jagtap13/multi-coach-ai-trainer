@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import HistoryPanel from "./HistoryPanel";
 import PromptModal from "./PromptModal";
+import VideoCards from "./VideoCards";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -97,6 +98,7 @@ function ChatWindow({ coach, profile, token }) {
           content: data.answer,
           sources: data.sources,
           messageId: data.message_id,
+          videos: data.videos,
         },
       ]);
     } catch (err) {
@@ -260,6 +262,7 @@ function ChatWindow({ coach, profile, token }) {
             content: entry.answer,
             sources: entry.sources,
             messageId: entry.id,
+            videos: entry.videos,
           },
         ]);
         setMessages(loadedMessages);
@@ -414,6 +417,7 @@ function ChatWindow({ coach, profile, token }) {
                 Sources: {msg.sources.join(", ")}
               </p>
             )}
+            <VideoCards videos={msg.videos} />
             {msg.role === "assistant" && msg.messageId && (
               <div className="flex items-center gap-2 mt-2">
                 <button
