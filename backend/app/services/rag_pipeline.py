@@ -323,7 +323,7 @@ def translate_answer(text, language):
 
 GENERIC_ALIASES = {"clean"}   # the plain word "clean" appears in normal sentences
 
-def find_exercises(answer, avoided_items=None, max_items=2):
+def find_exercises(answer, avoided_items=None, max_items=4):
     # 1. Collect every name of exercises we must NOT show videos for
     avoided_aliases = set()
     if avoided_items and avoided_items.lower() != "none":
@@ -347,7 +347,7 @@ def find_exercises(answer, avoided_items=None, max_items=2):
             if later.strip():
                 next_text = later.lower()
                 break
-        has_sets_here = re.search(r"\b(sets?|reps?)\b", text)
+        has_sets_here = re.search(r"\b(sets?|reps?)\b|\d+\s*[x×]\s*\d+", text)
         has_sets_next = re.match(r"^[\s*•-]*\d+\s*sets?\b", next_text)
         if not (has_sets_here or has_sets_next):
             continue
