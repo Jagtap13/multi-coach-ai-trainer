@@ -1,6 +1,8 @@
 import sys
 import os
 import uuid
+import json
+import traceback
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "rag"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "llm"))
@@ -25,6 +27,7 @@ from feedback_routes import router as feedback_router
 from kb_admin_routes import router as kb_admin_router
 from database import get_db
 from chat_history import ChatHistory
+from youtube_service import get_videos_for_exercise
 
 app = FastAPI(title="AI Personal Trainer Simulator API")
 app.include_router(auth_router)
@@ -40,7 +43,7 @@ app.add_middleware(
     allow_origins=["http://localhost:5173", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"],     
 )
 
 class UserProfile(BaseModel):
@@ -57,12 +60,20 @@ class ChatRequest(BaseModel):
     conversation_id: str | None = None
     language: str = "en"
 
+class Video(BaseModel):
+    exercise: str
+    video_id: str
+    title: str
+    channel: str
+    thumbnail: str
+
 class ChatResponse(BaseModel):
     answer: str
     coach_type: str
     sources: list[str]
     conversation_id: str
     message_id: int
+    videos: list[Video] = []
 
 @app.get("/")
 def root():
@@ -93,13 +104,21 @@ def chat(request: ChatRequest, current_user=Depends(get_current_user), db: Sessi
                     {"question": t.question, "answer": t.answer} for t in recent_turns
                 ]
 
-        answer, chunks = get_rag_response(
+        answer, chunks, exercises = get_rag_response(
             request.question,
             coach_type=request.coach_type,
             profile=request.profile.model_dump() if request.profile else None,
             conversation_history=conversation_history,
             language=request.language
     )
+        videos = []
+        for name in exercises:
+            try:
+                for v in get_videos_for_exercise(name, request.language, db)[:1]:
+                    videos.append({**v, "exercise": name})
+            except Exception as e:
+                db.rollback()
+                print(f"[youtube] skipped {name}: {e}")
         sources = list(set(os.path.basename(c.metadata.get("source", "unknown")) for c in chunks))
         conv_id = request.conversation_id or str(uuid.uuid4())
         # Save to chat history
@@ -109,7 +128,8 @@ def chat(request: ChatRequest, current_user=Depends(get_current_user), db: Sessi
             coach_type=request.coach_type,
             question=request.question,
             answer=answer,
-            sources=",".join(sources)
+            sources=",".join(sources),
+            videos=json.dumps(videos) if videos else None,
         )
         db.add(history_entry)
         db.commit() 
@@ -119,9 +139,11 @@ def chat(request: ChatRequest, current_user=Depends(get_current_user), db: Sessi
             coach_type=request.coach_type,
             sources=sources,
             conversation_id=conv_id,
-            message_id=history_entry.id
+            message_id=history_entry.id,
+            videos=videos
         )
     except Exception as e:
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
     
@@ -179,6 +201,7 @@ def get_conversation_messages(conversation_id: str, current_user=Depends(get_cur
             "question": r.question,
             "answer": r.answer,
             "sources": r.sources.split(",") if r.sources else [],
+            "videos": json.loads(r.videos) if r.videos else [],
             "created_at": r.created_at.isoformat(),
         }
         for r in records

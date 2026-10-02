@@ -321,6 +321,57 @@ def translate_answer(text, language):
         print(f"Translation failed, returning English: {e}")
         return text
 
+GENERIC_ALIASES = {"clean"}   # the plain word "clean" appears in normal sentences
+
+def find_exercises(answer, avoided_items=None, max_items=2):
+    # 1. Collect every name of exercises we must NOT show videos for
+    avoided_aliases = set()
+    if avoided_items and avoided_items.lower() != "none":
+        for item in avoided_items.split(","):
+            avoided_aliases.update(expand_with_synonyms(item, "bodybuilding"))
+
+    lines = answer.split("\n")
+    found = []   # each entry: (line number, position in line, exercise)
+
+    for line_num, line in enumerate(lines):
+        text = line.lower()
+
+        # 2. Skip lines like "avoid squats" or "instead of lunges"
+        if any(marker in text for marker in SAFE_CONTEXT_MARKERS):
+            continue
+
+        # 3. Only count lines that look like a real workout instruction
+        #    sets/reps on this line, OR the next non-empty line starts with "3 sets..."
+        next_text = ""
+        for later in lines[line_num + 1:]:
+            if later.strip():
+                next_text = later.lower()
+                break
+        has_sets_here = re.search(r"\b(sets?|reps?)\b", text)
+        has_sets_next = re.match(r"^[\s*•-]*\d+\s*sets?\b", next_text)
+        if not (has_sets_here or has_sets_next):
+            continue
+
+        # 4. Look for each known exercise (and its other names) in this line
+        for canonical, aliases in EXERCISE_SYNONYMS.items():
+            if canonical in avoided_aliases:
+                continue
+            for alias in aliases:
+                if alias in GENERIC_ALIASES:
+                    continue
+                match = re.search(r"\b" + re.escape(alias) + r"\b", text)
+                if match:
+                    found.append((line_num, match.start(), canonical))
+                    break
+
+    # 5. Keep the order they appear, remove repeats, cap the count
+    found.sort()
+    result = []
+    for _, _, name in found:
+        if name not in result:
+            result.append(name)
+    return result[:max_items]
+
 def get_rag_response(user_question, coach_type="bodybuilding", k=3, profile=None, conversation_history=None, language="en"):
     chunks = retrieve_relevant_chunks(user_question, k=k, coach_type=coach_type)
 
@@ -338,8 +389,12 @@ def get_rag_response(user_question, coach_type="bodybuilding", k=3, profile=None
     prompt = build_prompt(user_question, chunks, coach_type=coach_type, profile=profile, conversation_history=conversation_history, avoided_items=avoided_items, language="en")
     answer = generate_response(prompt)
     answer = check_for_avoided_items(answer, avoided_items, coach_type)
+    exercises = []
+    if coach_type in ("bodybuilding", "powerlifting", "fatloss"):
+        exercises = find_exercises(answer, avoided_items)
+
     answer = translate_answer(answer, language)
-    return answer, chunks
+    return answer, chunks, exercises
 
 if __name__ == "__main__":
     question = "I have a shoulder injury but I really want to build muscle fast. What should I do?"
@@ -349,6 +404,6 @@ if __name__ == "__main__":
         "experience_level":"beginner",
         "goal":"build muscle"
     }
-    answer, sources = get_rag_response(question,coach_type="bodybuilding",profile=sample_profile)
+    answer, sources, exercises = get_rag_response(question,coach_type="bodybuilding",profile=sample_profile)
     print("--- Answer (with profile) ---")
     print(answer)
