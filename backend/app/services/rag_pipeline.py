@@ -26,7 +26,7 @@ EXERCISE_SYNONYMS = {
     "deadlift": ["deadlift", "deadlifts", "conventional deadlift", "sumo deadlift"],
     "romanian deadlift": ["romanian deadlift", "romanian deadlifts", "rdl", "rdls", "stiff-leg deadlift", "stiff leg deadlift"],
     "running": ["running", "jogging", "sprinting", "treadmill running"],
-    "lunge": ["lunge", "lunges", "walking lunge", "bulgarian split squat"],
+    "lunge": ["lunge", "lunges", "walking lunge", "bulgarian split squat", "bulgarian split squats"],
     "good morning": ["good morning", "good mornings"],
     "bent-over row": ["bent-over row", "bent-over rows", "barbell row", "barbell rows"],
     "bench press": ["bench press", "flat bench", "barbell bench press", "incline bench press", "decline bench press"],
@@ -340,8 +340,8 @@ def find_exercises(answer, avoided_items=None, max_items=4):
         if any(marker in text for marker in SAFE_CONTEXT_MARKERS):
             continue
 
-        # 3. Only count lines that look like a real workout instruction
-        #    sets/reps on this line, OR the next non-empty line starts with "3 sets..."
+        # 3. Only count lines that look like a real workout instruction:
+        #    sets/reps (or 3x10) on this line, OR the next non-empty line starts with "3 sets..."
         next_text = ""
         for later in lines[line_num + 1:]:
             if later.strip():
@@ -352,7 +352,8 @@ def find_exercises(answer, avoided_items=None, max_items=4):
         if not (has_sets_here or has_sets_next):
             continue
 
-        # 4. Look for each known exercise (and its other names) in this line
+        # 4. Collect every exercise hit on THIS line: (start, end, name)
+        hits = []
         for canonical, aliases in EXERCISE_SYNONYMS.items():
             if canonical in avoided_aliases:
                 continue
@@ -361,10 +362,22 @@ def find_exercises(answer, avoided_items=None, max_items=4):
                     continue
                 match = re.search(r"\b" + re.escape(alias) + r"\b", text)
                 if match:
-                    found.append((line_num, match.start(), canonical))
+                    hits.append((match.start(), match.end(), canonical))
                     break
 
-    # 5. Keep the order they appear, remove repeats, cap the count
+        # 5. Keep a hit only if it is NOT inside a longer hit of another exercise
+        for start, end, name in hits:
+            inside_another = False
+            for other_start, other_end, other_name in hits:
+                if (other_name != name
+                        and other_start <= start
+                        and end <= other_end
+                        and (other_end - other_start) > (end - start)):
+                    inside_another = True
+            if not inside_another:
+                found.append((line_num, start, name))
+
+    # 6. Keep the order they appear, remove repeats, cap the count
     found.sort()
     result = []
     for _, _, name in found:

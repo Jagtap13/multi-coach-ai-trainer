@@ -19,6 +19,14 @@ class TestFindExercises:
         answer = "Warm-up: jogging and lunges.\n1. Leg Press: 3 sets of 8-12 reps"
         assert find_exercises(answer) == ["leg press"]
 
+    def test_longer_name_wins_romanian_deadlift(self):
+        answer = "1. Romanian Deadlifts: 3 sets of 8 reps"
+        assert find_exercises(answer) == ["romanian deadlift"]
+
+    def test_longer_name_wins_bulgarian_split_squat(self):
+        answer = "1. Bulgarian Split Squats: 3 sets of 8 reps"
+        assert find_exercises(answer) == ["lunge"]
+
     def test_accepts_3x10_format(self):
         answer = "Squats 3x10\nLeg Press 4 x 8"
         assert find_exercises(answer) == ["squat", "leg press"]
