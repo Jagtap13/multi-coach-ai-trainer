@@ -68,9 +68,15 @@ def get_videos_for_exercise(exercise, language, db):
         print(f"[youtube] cache hit: {exercise}")
         return json.loads(row.videos_json)
 
+    SEARCH_TERMS = {
+        "clean": "power clean",
+        "dip": "tricep dip",
+        "good morning": "good morning barbell exercise",
+        }
     # 2. No (or too old): ask YouTube
     print(f"[youtube] searching YouTube for: {exercise}")
-    videos = search_youtube(f"{exercise} proper form tutorial", language)
+    term = SEARCH_TERMS.get(exercise, exercise)
+    videos = search_youtube(f"{term} proper form tutorial", language)
 
     # 3. If YouTube gave nothing (error, quota), do NOT save anything
     if not videos:

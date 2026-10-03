@@ -184,3 +184,15 @@ class TestVideoCache:
 
         assert result == []
         db.add.assert_not_called()      # an empty result must not be saved
+
+    def test_ambiguous_names_use_a_clearer_search_term(self, monkeypatch):
+        queries = []
+        monkeypatch.setattr(youtube_service, "search_youtube",
+                            lambda query, language="en": queries.append(query) or FAKE_VIDEOS)
+
+        db = MagicMock()
+        db.query.return_value.filter.return_value.first.return_value = None
+
+        youtube_service.get_videos_for_exercise("clean", "en", db)
+
+        assert "power clean" in queries[0]
