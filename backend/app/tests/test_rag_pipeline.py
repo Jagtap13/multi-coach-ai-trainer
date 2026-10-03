@@ -73,11 +73,13 @@ class TestInjuryAllergyRiskMerging:
 
     def test_no_duplicate_entries(self):
         result = merge_avoided_with_risk_map("Squats", "knee", INJURY_RISK_EXERCISES)
-        assert result.lower().count("squats") == 1
-
+        entries = [e.strip() for e in result.lower().split(",")]
+        assert entries.count("squats") == 1
+    
     def test_allergy_risk_map_used_for_nutrition(self):
         result = merge_avoided_with_risk_map("Dairy", "dairy", ALLERGY_RISK_FOODS)
         assert "Whey Protein" in result or "whey protein" in result.lower()
+    
 
     def test_none_avoided_items_still_adds_risk_list(self):
         result = merge_avoided_with_risk_map(None, "shoulder", INJURY_RISK_EXERCISES)

@@ -27,10 +27,11 @@ EXERCISE_SYNONYMS = {
     "romanian deadlift": ["romanian deadlift", "romanian deadlifts", "rdl", "rdls", "stiff-leg deadlift", "stiff leg deadlift"],
     "running": ["running", "jogging", "sprinting", "treadmill running"],
     "lunge": ["lunge", "lunges", "walking lunge", "bulgarian split squat", "bulgarian split squats"],
+    "step-up": ["step-up", "step-ups", "step up", "step ups"],
     "good morning": ["good morning", "good mornings"],
     "bent-over row": ["bent-over row", "bent-over rows", "barbell row", "barbell rows"],
     "push-up": ["push-up", "push-ups", "pushup", "pushups"],
-        "bench press": ["bench press", "flat bench", "barbell bench press"],
+    "bench press": ["bench press", "flat bench", "barbell bench press"],
     "incline bench press": ["incline bench press"],
     "decline bench press": ["decline bench press"],
     "pull-up": ["pull-up", "pull-ups", "pullup", "pullups", "chin-up", "chin-ups"],
@@ -53,6 +54,9 @@ EXERCISE_SYNONYMS = {
     "mountain climber": ["mountain climber", "mountain climbers"],
     "box jump": ["box jump", "box jumps"],
     "shrug": ["shrug", "shrugs", "barbell shrug", "dumbbell shrug"],
+    "goblet squat": ["goblet squat", "goblet squats"],
+    "chest fly": ["chest fly", "chest flys", "chest flies", "dumbbell fly", "dumbbell flies"],
+    "dip": ["dip", "dips", "tricep dip", "tricep dips", "bench dip", "bench dips"],
 }
 
 FOOD_SYNONYMS = {
@@ -68,13 +72,13 @@ FOOD_SYNONYMS = {
 }
 
 INJURY_RISK_EXERCISES = {
-    "knee": ["squat", "squats", "lunge", "lunges", "box jump", "box jumps", "jumping", "running", "leg extension", "leg extensions", "burpee", "burpees"],
-    "shoulder": ["overhead press", "lateral raise", "lateral raises", "rear delt fly", "push press", "bench press", "pull-up", "pull-ups", "face pull", "face pulls", "snatch","incline bench press", "decline bench press", "lat pulldown", "lat pulldowns"],
-    "lower back": ["deadlift", "deadlifts", "good morning", "good mornings", "bent-over row", "bent-over rows", "romanian deadlift", "romanian deadlifts", "clean", "hip thrust", "hip thrusts"],
-    "hip": ["squat", "squats", "lunge", "lunges", "deadlift", "deadlifts", "hip thrust", "hip thrusts"],
-    "wrist": ["push-up", "push-ups", "bench press", "front squat", "clean", "snatch","incline bench press", "decline bench press"],
-    "ankle": ["running", "jumping", "box jump", "box jumps", "lunge", "lunges", "jump rope", "burpee", "burpees"],
-    "elbow": ["incline bench press", "decline bench press", "lat pulldown", "lat pulldowns", "hammer curl", "hammer curls","bicep curl", "bicep curls", "tricep extension", "tricep extensions", "bench press", "push-up", "push-ups", "pull-up", "pull-ups"],
+    "knee": ["squat", "squats", "lunge", "lunges", "box jump", "box jumps", "jumping", "running", "leg extension", "leg extensions", "burpee", "burpees","step-up","step-ups","goblet squat", "goblet squats"],
+    "shoulder": ["overhead press", "lateral raise", "lateral raises", "rear delt fly", "push press", "bench press", "pull-up", "pull-ups", "face pull", "face pulls", "snatch","incline bench press", "decline bench press", "lat pulldown", "lat pulldowns","chest fly", "chest flys", "chest flies", "dumbbell fly", "dumbbell flies","dip", "dips", "tricep dip", "tricep dips", "bench dip", "bench dips", "mountain climber", "mountain climbers"],
+    "lower back": ["deadlift", "deadlifts", "good morning", "good mornings", "bent-over row", "bent-over rows", "romanian deadlift", "romanian deadlifts", "clean", "hip thrust", "hip thrusts","goblet squat", "goblet squats"],
+    "hip": ["squat", "squats", "lunge", "lunges", "deadlift", "deadlifts", "hip thrust", "hip thrusts", "goblet squat", "goblet squats", "step-up", "step-ups"],
+    "wrist": ["push-up", "push-ups", "bench press", "front squat", "clean", "snatch","incline bench press", "decline bench press","dip", "dips", "tricep dip", "tricep dips", "bench dip", "bench dips","mountain climber", "mountain climbers"],
+    "ankle": ["running", "jumping", "box jump", "box jumps", "lunge", "lunges", "jump rope", "burpee", "burpees","step-up","step-ups"],
+    "elbow": ["incline bench press", "decline bench press", "lat pulldown", "lat pulldowns", "hammer curl", "hammer curls","bicep curl", "bicep curls", "tricep extension", "tricep extensions", "bench press", "push-up", "push-ups", "pull-up", "pull-ups","dip", "dips", "tricep dip", "tricep dips", "bench dip", "bench dips"],
     "neck": ["overhead press", "shrug", "shrugs", "clean", "snatch"],
 }
 
