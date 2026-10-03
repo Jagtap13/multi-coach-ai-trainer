@@ -3,11 +3,11 @@ import os
 import json
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
-
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "services"))
 
 import youtube_service
 from rag_pipeline import find_exercises
+from rag_pipeline import find_exercises, merge_avoided_with_risk_map, INJURY_RISK_EXERCISES
 
 
 class TestFindExercises:
@@ -26,6 +26,38 @@ class TestFindExercises:
     def test_longer_name_wins_bulgarian_split_squat(self):
         answer = "1. Bulgarian Split Squats: 3 sets of 8 reps"
         assert find_exercises(answer) == ["lunge"]
+
+    def test_shoulder_injury_blocks_lat_pulldown(self):
+        avoided = merge_avoided_with_risk_map(None, "shoulder", INJURY_RISK_EXERCISES)
+        assert find_exercises("1. Lat Pulldowns: 3 sets of 10 reps", avoided) == []
+
+    def test_shoulder_injury_blocks_incline_bench_press(self):
+        avoided = merge_avoided_with_risk_map(None, "shoulder", INJURY_RISK_EXERCISES)
+        assert find_exercises("1. Incline Bench Press: 3 sets of 8 reps", avoided) == []
+
+    def test_elbow_injury_blocks_hammer_curl(self):
+        avoided = merge_avoided_with_risk_map(None, "elbow", INJURY_RISK_EXERCISES)
+        assert find_exercises("1. Hammer Curls: 3 sets of 10 reps", avoided) == []
+
+    def test_incline_bench_press_gets_its_own_video(self):
+        assert find_exercises("1. Incline Bench Press: 3 sets of 8 reps") == ["incline bench press"]
+
+    def test_lat_pulldown_gets_its_own_video(self):
+        assert find_exercises("1. Lat Pulldowns: 3 sets of 10 reps") == ["lat pulldown"]
+
+    def test_hammer_curl_gets_its_own_video(self):
+        assert find_exercises("1. Hammer Curls: 3 sets of 10 reps") == ["hammer curl"]
+
+    def test_elbow_injury_blocks_lat_pulldown(self):
+        avoided = merge_avoided_with_risk_map(None, "elbow", INJURY_RISK_EXERCISES)
+        assert find_exercises("1. Lat Pulldowns: 3 sets of 10 reps", avoided) == []
+
+    def test_wrist_injury_blocks_incline_bench_press(self):
+        avoided = merge_avoided_with_risk_map(None, "wrist", INJURY_RISK_EXERCISES)
+        assert find_exercises("1. Incline Bench Press: 3 sets of 8 reps", avoided) == []
+
+    def test_coach_said_avoid_bench_press_blocks_incline(self):
+        assert find_exercises("1. Incline Bench Press: 3 sets of 8 reps", "Bench Press") == []
 
     def test_accepts_3x10_format(self):
         answer = "Squats 3x10\nLeg Press 4 x 8"

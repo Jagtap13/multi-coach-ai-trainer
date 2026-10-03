@@ -29,10 +29,14 @@ EXERCISE_SYNONYMS = {
     "lunge": ["lunge", "lunges", "walking lunge", "bulgarian split squat", "bulgarian split squats"],
     "good morning": ["good morning", "good mornings"],
     "bent-over row": ["bent-over row", "bent-over rows", "barbell row", "barbell rows"],
-    "bench press": ["bench press", "flat bench", "barbell bench press", "incline bench press", "decline bench press"],
     "push-up": ["push-up", "push-ups", "pushup", "pushups"],
-    "pull-up": ["pull-up", "pull-ups", "pullup", "pullups", "chin-up", "chin-ups", "lat pulldown", "lat pulldowns"],
-    "bicep curl": ["bicep curl", "bicep curls", "barbell curl", "dumbbell curl", "hammer curl", "hammer curls"],
+        "bench press": ["bench press", "flat bench", "barbell bench press"],
+    "incline bench press": ["incline bench press"],
+    "decline bench press": ["decline bench press"],
+    "pull-up": ["pull-up", "pull-ups", "pullup", "pullups", "chin-up", "chin-ups"],
+    "lat pulldown": ["lat pulldown", "lat pulldowns"],
+    "bicep curl": ["bicep curl", "bicep curls", "barbell curl", "dumbbell curl"],
+    "hammer curl": ["hammer curl", "hammer curls"],
     "tricep extension": ["tricep extension", "tricep extensions", "skull crusher", "skull crushers", "overhead tricep extension"],
     "leg press": ["leg press", "leg presses"],
     "leg extension": ["leg extension", "leg extensions"],
@@ -65,12 +69,12 @@ FOOD_SYNONYMS = {
 
 INJURY_RISK_EXERCISES = {
     "knee": ["squat", "squats", "lunge", "lunges", "box jump", "box jumps", "jumping", "running", "leg extension", "leg extensions", "burpee", "burpees"],
-    "shoulder": ["overhead press", "lateral raise", "lateral raises", "rear delt fly", "push press", "bench press", "pull-up", "pull-ups", "face pull", "face pulls", "snatch"],
+    "shoulder": ["overhead press", "lateral raise", "lateral raises", "rear delt fly", "push press", "bench press", "pull-up", "pull-ups", "face pull", "face pulls", "snatch","incline bench press", "decline bench press", "lat pulldown", "lat pulldowns"],
     "lower back": ["deadlift", "deadlifts", "good morning", "good mornings", "bent-over row", "bent-over rows", "romanian deadlift", "romanian deadlifts", "clean", "hip thrust", "hip thrusts"],
     "hip": ["squat", "squats", "lunge", "lunges", "deadlift", "deadlifts", "hip thrust", "hip thrusts"],
-    "wrist": ["push-up", "push-ups", "bench press", "front squat", "clean", "snatch"],
+    "wrist": ["push-up", "push-ups", "bench press", "front squat", "clean", "snatch","incline bench press", "decline bench press"],
     "ankle": ["running", "jumping", "box jump", "box jumps", "lunge", "lunges", "jump rope", "burpee", "burpees"],
-    "elbow": ["bicep curl", "bicep curls", "tricep extension", "tricep extensions", "bench press", "push-up", "push-ups", "pull-up", "pull-ups"],
+    "elbow": ["incline bench press", "decline bench press", "lat pulldown", "lat pulldowns", "hammer curl", "hammer curls","bicep curl", "bicep curls", "tricep extension", "tricep extensions", "bench press", "push-up", "push-ups", "pull-up", "pull-ups"],
     "neck": ["overhead press", "shrug", "shrugs", "clean", "snatch"],
 }
 
@@ -362,6 +366,9 @@ def find_exercises(answer, avoided_items=None, max_items=4):
                     continue
                 match = re.search(r"\b" + re.escape(alias) + r"\b", text)
                 if match:
+                    matched_text = match.group(0)
+                    if any(a in matched_text for a in avoided_aliases):
+                        break
                     hits.append((match.start(), match.end(), canonical))
                     break
 
